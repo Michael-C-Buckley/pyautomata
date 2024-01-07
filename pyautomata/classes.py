@@ -1,6 +1,6 @@
 # Cellular Automata
 
-from numpy import arange, binary_repr, zeros, ndarray
+from numpy import arange, binary_repr, zeros
 
 class Automata:
     def __init__(self, rule: int) -> None:
@@ -37,17 +37,8 @@ class Canvas:
     def __init__(self, automata: Automata, description: str = '', columns: int = 100) -> None:
         self.columns = columns
         self.automata = automata
-        self.row_sums = None
-        self.result = None
         self.description = description
 
-    def __repr__(self) -> str:
-        return f'Canvas: {self.description}'
-        
-    def generate(self) -> ndarray:
-        """
-        
-        """
         rows = (self.columns//2) + 1
         canvas = zeros([rows, self.columns+2])
         canvas[0, int(self.columns/2)+1] = 1
@@ -62,4 +53,6 @@ class Canvas:
                 self.sums[i+1] += output_pattern
 
         self.result = canvas
-        return canvas
+
+    def __repr__(self) -> str:
+        return f'Canvas: Rule {self.automata.rule} - {self.description}'
