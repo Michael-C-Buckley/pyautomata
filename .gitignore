@@ -4,6 +4,7 @@ Output/
 logs/
 **/__pycache__/
 test.py
+test.ipynb
 
 # Template added
 # Editors
