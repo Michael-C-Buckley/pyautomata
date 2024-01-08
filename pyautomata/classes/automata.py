@@ -1,7 +1,7 @@
 # Cellular Automata
 
 # Python Modules
-from pickle import dump, load
+from pickle import load
 from os import path
 
 # Third-Party Modules
@@ -10,6 +10,7 @@ from numpy import binary_repr
 
 # Local Modules
 from pyautomata.classes.canvas import Canvas
+from pyautomata.classes.general import Pattern
 
 CACHE_DIR = user_data_dir()
 
@@ -36,29 +37,29 @@ class Automata:
     def __repr__(self) -> str:
         return f'Automata: Rule {self.rule}'
     
-    def get_canvas(self, columns: int = 100) -> 'Canvas':
+    def get_canvas(self, pattern: Pattern = Pattern.STANDARD,
+                   columns: int = 100, save: bool = True,
+                   regenerate: bool = False) -> 'Canvas':
         """
         Method to generate the typical pattern, starting with a single point.
 
         `columns` is an `int` of the deep that the canvas will be generated to
         """
-        description = 'Standard center start'
-        filename = f'R{self.rule} L{columns} {description}'
+        filename = f'R{self.rule} L{columns} {pattern.value}'
 
-        try:
-            with open(path.join(CACHE_DIR, f'{filename}.pkl'), 'rb') as file:
-                canvas = load(file)
-        except Exception as e:
-            canvas = Canvas(self, description, columns)
+        generate = lambda: Canvas(self, pattern, columns)
+
+        if regenerate:
+            canvas = generate()
+
+        else:
+            try:
+                with open(path.join(CACHE_DIR, f'{filename}.pkl'), 'rb') as file:
+                    return load(file)
+            except Exception as e:
+                canvas = generate()
+        
+        if save:
+            canvas.save()
 
         return canvas
-    
-    def save_canvas(self, canvas: 'Canvas'):
-        """
-        Method to save a canvas
-        """
-        filename = f'R{self.rule} L{canvas.columns} {canvas.description}'
-        file_path = path.join(CACHE_DIR, f'{filename}.pkl')
-        
-        with open(file_path, 'wb') as canvas_pickle:
-            dump(canvas, canvas_pickle)

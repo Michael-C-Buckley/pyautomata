@@ -1,1 +1,1 @@
-from pyautomata.classes import Automata, Canvas
+from pyautomata.classes import Automata, Canvas, Pattern
