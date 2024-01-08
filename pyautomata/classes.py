@@ -1,6 +1,15 @@
 # Cellular Automata
 
+# Python Modules
+from pickle import dump, load
+from os import path
+
+# Third-Party Modules
+from appdirs import user_data_dir
 from numpy import arange, binary_repr, zeros
+
+CACHE_DIR = user_data_dir()
+
 
 class Automata:
     def __init__(self, rule: int) -> None:
@@ -31,7 +40,25 @@ class Automata:
         `columns` is an `int` of the deep that the canvas will be generated to
         """
         description = 'Standard center start'
-        return Canvas(self, description, columns)
+        filename = f'R{self.rule} L{columns} {description}'
+
+        try:
+            with open(path.join(CACHE_DIR, f'{filename}.pkl'), 'rb') as file:
+                canvas = load(file)
+        except Exception as e:
+            canvas = Canvas(self, description, columns)
+
+        return canvas
+    
+    def save_canvas(self, canvas: 'Canvas'):
+        """
+        Method to save a canvas
+        """
+        filename = f'R{self.rule} L{canvas.columns} {canvas.description}'
+        file_path = path.join(CACHE_DIR, f'{filename}.pkl')
+        
+        with open(file_path, 'wb') as canvas_pickle:
+            dump(canvas, canvas_pickle)
 
 class Canvas:
     def __init__(self, automata: Automata, description: str = '', columns: int = 100) -> None:
