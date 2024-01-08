@@ -21,6 +21,7 @@ setup(
     version=VERSION,
     packages=find_packages(),
     install_requires=[
+        'appdirs',
         'numpy',
         'matplotlib'
     ],
