@@ -74,7 +74,6 @@ class BaseCanvas:
 
         self.result = canvas
 
-
     def save(self):
         """
         Method to save the canvas to avoid re-calculation in the future

@@ -63,3 +63,9 @@ class Automata:
             canvas.save()
 
         return canvas
+    
+    def get_random_canvas(self, columns: int = 100) -> 'Canvas':
+        """
+        Wrapper method for pre-defined random canvas arguments
+        """
+        return self.get_canvas(Pattern.RANDOM, columns, save=False, regenerate=True)
