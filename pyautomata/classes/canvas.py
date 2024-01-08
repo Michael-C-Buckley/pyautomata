@@ -15,6 +15,7 @@ class Canvas(BaseCanvas):
         super().__init__(automata, description, columns)
 
     def render(self, max_depth: int = None, filename: str = None):
-        if max_depth < self.columns:
-            raise ValueError(f'Max depth cannot exceed canvas columns ({max_depth} v. {self.columns})')
+        if max_depth is not None:
+            if max_depth < self.columns:
+                raise ValueError(f'Max depth cannot exceed canvas columns ({max_depth} v. {self.columns})')
         draw_plot(self, max_depth, filename)
