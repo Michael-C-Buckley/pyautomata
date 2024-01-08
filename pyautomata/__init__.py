@@ -1,1 +1,0 @@
-from pyautomata.classes import Automata, Canvas

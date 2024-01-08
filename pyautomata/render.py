@@ -1,15 +1,17 @@
 # PyAutomata Rendering Module
 
 # Python Modules
+from typing import TYPE_CHECKING
 
 # Third-Party Modules
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 
 # Local Modules
-from pyautomata import Canvas
+if TYPE_CHECKING:
+    from pyautomata.classes.canvas import Canvas
 
-def draw_plot(canvas: Canvas, max_depth: int = None, filename: str = None):
+def draw_plot(canvas: 'Canvas', max_depth: int = None, filename: str = None):
     """
     Draw a canvas plot
     """
