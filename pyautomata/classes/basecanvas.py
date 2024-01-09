@@ -16,6 +16,7 @@ from numpy import (
 
 # Local Modules
 from pyautomata.classes.general import Pattern
+from pyautomata.version import VERSION
 
 # Foreign Function Interfacing and checking
 RUST_AVAILABLE = False
@@ -40,6 +41,7 @@ class BaseCanvas:
         self.columns = columns
         self.automata = automata
         self.description = pattern.value
+        self.version = VERSION
 
         self.generate(pattern)
 

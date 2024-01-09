@@ -11,6 +11,7 @@ from numpy import array, binary_repr, uint8
 # Local Modules
 from pyautomata.classes.canvas import Canvas
 from pyautomata.classes.general import Pattern
+from pyautomata.version import VERSION
 
 CACHE_DIR = user_data_dir()
 
@@ -60,7 +61,10 @@ class Automata:
             try:
                 with open(path.join(CACHE_DIR, f'{filename}.pkl'), 'rb') as file:
                     canvas: Canvas = load(file)
-                canvas.load_array()
+                if VERSION != canvas.version:
+                    canvas = generate()
+                else:
+                    canvas.load_array()
                 return canvas
             except Exception as e:
                 canvas = generate()
