@@ -59,7 +59,9 @@ class Automata:
         else:
             try:
                 with open(path.join(CACHE_DIR, f'{filename}.pkl'), 'rb') as file:
-                    return load(file)
+                    canvas: Canvas = load(file)
+                canvas.load_array()
+                return canvas
             except Exception as e:
                 canvas = generate()
         

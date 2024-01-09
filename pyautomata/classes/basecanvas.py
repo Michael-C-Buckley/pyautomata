@@ -1,15 +1,18 @@
 # PyAutomata Base Canvas
 
 # Python Modules
-from enum import Enum
 from os import path
-from pickle import dump, load
+from pickle import dump
 from random import randint
 from typing import TYPE_CHECKING
 
 # Third-Party Modules
 from appdirs import user_data_dir
-from numpy import arange, zeros, ascontiguousarray, uint8, ndarray
+from numpy import (
+    arange, zeros, ascontiguousarray, 
+    save as np_save, load as np_load,
+    uint8, ndarray
+)
 
 # Local Modules
 from pyautomata.classes.general import Pattern
@@ -100,13 +103,45 @@ class BaseCanvas:
                 self.sums[i+1] += output_pattern
 
         return canvas
+    
+    def get_filename(self):
+        """
+        Returns the standard format for the filename for file caching minus extension
+        """
+        filename = f'R{self.automata.rule} L{self.columns} {self.description}'
+        file_path = path.join(CACHE_DIR, filename)
+        return file_path
+        
 
     def save(self):
         """
         Method to save the canvas to avoid re-calculation in the future
         """
-        filename = f'R{self.automata.rule} L{self.columns} {self.description}'
-        file_path = path.join(CACHE_DIR, f'{filename}.pkl')
+        filename = self.get_filename()
+
+        # Separately save the array for performance reasons
+        canvas_array = self.result
+        self.save_array(f'{filename}.npy')
+        self.result = None
         
-        with open(file_path, 'wb') as canvas_pickle:
+        with open(f'{filename}.pkl', 'wb') as canvas_pickle:
             dump(self, canvas_pickle)
+
+        # Put the array back for normal use
+        self.result = canvas_array
+
+    def save_array(self, filename: str = None):
+        """
+        Method to save the NumPy array for performance
+        """
+        filename = f'{self.get_filename()}.npy' if not filename else filename
+        np_save(filename, self.result)
+
+    def load_array(self, filename: str = None):
+        """
+        Method to load saved NumPy array
+        """
+        filename = f'{self.get_filename()}.npy' if not filename else filename
+        array = np_load(filename)
+        self.result = array
+        return array
