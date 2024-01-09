@@ -6,7 +6,7 @@ from os import path
 
 # Third-Party Modules
 from appdirs import user_data_dir
-from numpy import binary_repr
+from numpy import array, binary_repr, uint8
 
 # Local Modules
 from pyautomata.classes.canvas import Canvas
@@ -25,14 +25,18 @@ class Automata:
             raise ValueError(init_except_message)
         
         pattern = {}
+        flat_pattern = []
         output_pattern = [int(x) for x in binary_repr(rule, width=8)]
 
         for i in range(8):
             input_pattern = tuple([int(x) for x in binary_repr(7-i, 3)])
             pattern[input_pattern] = output_pattern[i]
+            flat_pattern.extend(input_pattern)
+            flat_pattern.append(output_pattern[i])
 
         self.rule = rule
         self.pattern = pattern
+        self.flat_pattern = array(flat_pattern, uint8)
 
     def __repr__(self) -> str:
         return f'Automata: Rule {self.rule}'

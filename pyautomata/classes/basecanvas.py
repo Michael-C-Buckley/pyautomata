@@ -9,10 +9,11 @@ from typing import TYPE_CHECKING
 
 # Third-Party Modules
 from appdirs import user_data_dir
-from numpy import arange, zeros
+from numpy import arange, zeros, ascontiguousarray, uint8
 
 # Local Modules
 from pyautomata.classes.general import Pattern
+from pyautomata.handlers.rust import generate_canvas
 
 if TYPE_CHECKING:
     from pyautomata.classes.automata import Automata
@@ -32,6 +33,8 @@ class BaseCanvas:
 
         self.generate(pattern)
 
+        # self.result = generate_canvas()
+
     def __repr__(self) -> str:
         return f'Canvas: Rule {self.automata.rule} - {self.description}'
 
@@ -40,12 +43,13 @@ class BaseCanvas:
         Generate the canvas based on the supplied pattern
         """
         rows = (self.columns//2) + 1
-        canvas = zeros([rows, self.columns+2])
+        canvas = zeros([rows, self.columns], uint8)
+        ascontiguousarray(canvas)
 
         pattern_map = {
             Pattern.LEFT: 0,
             Pattern.RIGHT: self.columns,
-            Pattern.STANDARD: (self.columns//2)+1,
+            Pattern.STANDARD: self.columns//2,
         }
         patter_iteration_map = {
             Pattern.RANDOM: lambda _: randint(0, 1),
@@ -68,13 +72,7 @@ class BaseCanvas:
 
         self.sums = [row_sum]
 
-        for i in arange(0, rows-1):
-            self.sums.append(0)
-            for j in arange(0, self.columns):
-                local_pattern = tuple(canvas[i, j:j+3])
-                output_pattern = self.automata.pattern.get(local_pattern)
-                canvas[i+1, j+1] = output_pattern
-                self.sums[i+1] += output_pattern
+        canvas = generate_canvas(canvas[0], rows, self.columns, self.automata.flat_pattern)
 
         self.result = canvas
 
