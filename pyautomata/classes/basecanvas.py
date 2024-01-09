@@ -9,11 +9,18 @@ from typing import TYPE_CHECKING
 
 # Third-Party Modules
 from appdirs import user_data_dir
-from numpy import arange, zeros, ascontiguousarray, uint8
+from numpy import arange, zeros, ascontiguousarray, uint8, ndarray
 
 # Local Modules
 from pyautomata.classes.general import Pattern
-from pyautomata.handlers.rust import generate_canvas
+
+# Foreign Function Interfacing and checking
+RUST_AVAILABLE = False
+try:
+    from pyautomata.handlers.rust import generate_canvas
+    RUST_AVAILABLE = True
+except OSError:
+    pass
 
 if TYPE_CHECKING:
     from pyautomata.classes.automata import Automata
@@ -32,8 +39,6 @@ class BaseCanvas:
         self.description = pattern.value
 
         self.generate(pattern)
-
-        # self.result = generate_canvas()
 
     def __repr__(self) -> str:
         return f'Canvas: Rule {self.automata.rule} - {self.description}'
@@ -72,9 +77,29 @@ class BaseCanvas:
 
         self.sums = [row_sum]
 
-        canvas = generate_canvas(canvas[0], rows, self.columns, self.automata.flat_pattern)
+        if RUST_AVAILABLE:
+            canvas = generate_canvas(canvas[0], rows, self.columns, self.automata.flat_pattern)
+        else:
+            print('PyAutomata Warning: Rust binary not found, falling back on Python logic')
+            canvas = self.python_generate(canvas, rows)
 
         self.result = canvas
+
+    def python_generate(self, canvas: ndarray, rows: int):
+        """
+        Alternative function to internally generate a canvas instead of using
+        the Rust API
+        """
+
+        for i in arange(0, rows-1):
+            self.sums.append(0)
+            for j in arange(0, self.columns-1):
+                local_pattern = tuple(canvas[i, j:j+3])
+                output_pattern = self.automata.pattern.get(local_pattern, 0)
+                canvas[i+1, j+1] = output_pattern
+                self.sums[i+1] += output_pattern
+
+        return canvas
 
     def save(self):
         """
