@@ -9,9 +9,9 @@ from typing import TYPE_CHECKING
 # Third-Party Modules
 from appdirs import user_data_dir
 from numpy import (
-    arange, zeros, ascontiguousarray, 
-    save as np_save, load as np_load,
-    uint8, ndarray
+    arange, array, ascontiguousarray, 
+    save as np_save, load as np_load, insert as np_insert,
+    zeros, uint8, ndarray,
 )
 
 # Local Modules
@@ -66,6 +66,9 @@ class BaseCanvas:
 
         row_sum = 0
 
+        # Interim value
+        self.sums = [row_sum]
+
         # Pattern logic
         if pattern in pattern_map:
             canvas[0, pattern_map[pattern]] = 1
@@ -78,15 +81,15 @@ class BaseCanvas:
                 canvas[0][i] = value
                 row_sum += value
 
-        self.sums = [row_sum]
-
         if RUST_AVAILABLE:
-            canvas = generate_canvas(canvas[0], rows, self.columns, self.automata.flat_pattern)
+            canvas, sums = generate_canvas(canvas[0], rows, self.columns, self.automata.flat_pattern)
+            self.sums = np_insert(sums, 0, row_sum)
         else:
             print('PyAutomata Warning: Rust binary not found, falling back on Python logic')
             canvas = self.python_generate(canvas, rows)
 
         self.result = canvas
+
 
     def python_generate(self, canvas: ndarray, rows: int):
         """
@@ -101,6 +104,8 @@ class BaseCanvas:
                 output_pattern = self.automata.pattern.get(local_pattern, 0)
                 canvas[i+1, j+1] = output_pattern
                 self.sums[i+1] += output_pattern
+
+        self.sums = array(self.sums)
 
         return canvas
     
