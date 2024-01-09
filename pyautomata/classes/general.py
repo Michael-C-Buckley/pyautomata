@@ -5,3 +5,5 @@ class Pattern(Enum):
     ALTERNATING = 'Alternating First Row'
     RANDOM = 'Random First Row'
     STANDARD = 'Standard Center Start'
+    LEFT = 'Left Start'
+    RIGHT = 'Right Start'

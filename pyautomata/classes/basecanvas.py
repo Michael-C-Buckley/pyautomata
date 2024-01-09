@@ -42,26 +42,30 @@ class BaseCanvas:
         rows = (self.columns//2) + 1
         canvas = zeros([rows, self.columns+2])
 
+        pattern_map = {
+            Pattern.LEFT: 0,
+            Pattern.RIGHT: self.columns,
+            Pattern.STANDARD: (self.columns//2)+1,
+        }
+        patter_iteration_map = {
+            Pattern.RANDOM: lambda _: randint(0, 1),
+            Pattern.ALTERNATING: lambda i: 0 if i % 2 == 0 else 1,
+        }
+
+        row_sum = 0
+
         # Pattern logic
-        if pattern is Pattern.STANDARD:
-            canvas[0, int(self.columns/2)+1] = 1
+        if pattern in pattern_map:
+            canvas[0, pattern_map[pattern]] = 1
             row_sum = 1
 
-        elif pattern is Pattern.RANDOM:
-            row_sum = 0
+        if pattern in patter_iteration_map:
+            func = patter_iteration_map[pattern]
             for i, _ in enumerate(canvas[0]):
-                canvas[0][i] = randint(0, 1)
-                row_sum = row_sum + canvas[0][i]
-        
-        elif pattern is Pattern.ALTERNATING:
-            row_sum = 0
-            for i, _ in enumerate(canvas[0]):
-                if i % 2 == 0:
-                    canvas[0][i] = 0
-                else:
-                    canvas[0][i] = 1
-                    row_sum += 1
-        
+                value = func(i)
+                canvas[0][i] = value
+                row_sum += value
+
         self.sums = [row_sum]
 
         for i in arange(0, rows-1):
