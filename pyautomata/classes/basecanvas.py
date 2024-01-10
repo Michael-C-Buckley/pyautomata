@@ -86,8 +86,11 @@ class BaseCanvas:
                 canvas[0][i] = value
                 row_sum += value
 
+        boost = True if pattern in pattern_map else False
+        central_line = 0 if not boost else pattern_map[pattern]
+
         if RUST_AVAILABLE:
-            canvas, sums = generate_canvas(canvas[0], rows, self.columns, self.automata.flat_pattern)
+            canvas, sums = generate_canvas(canvas[0], rows, self.columns, self.automata.flat_pattern, boost, central_line)
             self.sums = np_insert(sums, 0, row_sum)
         else:
             print('PyAutomata Warning: Rust binary not found, falling back on Python logic')
@@ -96,15 +99,20 @@ class BaseCanvas:
         self.result = canvas
 
 
-    def python_generate(self, canvas: ndarray, rows: int):
+    def python_generate(self, canvas: ndarray, rows: int, boost: bool = False, central_line: int = 0):
         """
         Alternative function to internally generate a canvas instead of using
         the Rust API
         """
 
         for i in arange(0, rows-1):
+
+            # Boost masking area determination
+            start = (central_line - i - 1) if boost else 0
+            stop = min((central_line + i + 1, self.columns-1)) if boost else self.columns-1
+
             self.sums.append(0)
-            for j in arange(0, self.columns-1):
+            for j in arange(start, stop):
                 local_pattern = tuple(canvas[i, j:j+3])
                 output_pattern = self.automata.pattern.get(local_pattern, 0)
                 canvas[i+1, j+1] = output_pattern
