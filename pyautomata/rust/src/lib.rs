@@ -96,9 +96,8 @@ pub extern "C" fn generate_canvas(
 #[repr(C)]
 pub struct StatsStruct {
     standard_deviation: f32,
-    standard_deviation_sum: f32,
-    sums_mean: f32,
-    sum_rate_average_ptr: *mut f32,
+    mean_increase: f32,
+    marginal_sum_increase_ptr: *mut f32,
     sum_rate_length: usize,
 }
 
@@ -110,41 +109,30 @@ pub extern "C" fn calculate_stats(canvas_sums: *const u32, sums_length: usize) -
         slice::from_raw_parts(canvas_sums, sums_length)
     };
 
-    let mut total_sums: f32 = 0.0;
-    let mut sum_rate_average: Vec<f32> = vec![0.0; sums_length];
-
+    let mut marginal_sum_increase = Vec::new();
+    let mut total_sum_increase = 0.0;
     for (i, &sum) in sums_slice.iter().enumerate() {
-        if sum == 0 {
-            sum_rate_average.pop();
-            continue;
+        if sum != 0 {
+            let increase = i as f32 / sum as f32;
+            marginal_sum_increase.push(increase);
+            total_sum_increase += increase;
         }
-        let sum_float: f32 = sum as f32;
-        let i_float: f32 = i as f32;
-        sum_rate_average[i] = i_float/sum_float;
-        total_sums += sum_rate_average[i];
     }
 
-    let sums_length_float: f32 = sums_length as f32;
-    let sums_mean: f32 = total_sums / sums_length_float;
+    let mean_increase = total_sum_increase / marginal_sum_increase.len() as f32;
 
-    let mut standard_deviation_sum: f32 = 0.0;
+    let variance_sum: f32 = marginal_sum_increase.iter().map(|&x| (x - mean_increase).powf(2.0)).sum();
+    let standard_deviation = f32::sqrt(variance_sum / marginal_sum_increase.len() as f32);
+    
+    let sum_rate_length: usize = marginal_sum_increase.len();
 
-    for item in &sum_rate_average {
-        let item_float: f32 = *item as f32;
-        let variance: f32 = (item_float - sums_mean).powf(2.0);
-        standard_deviation_sum += variance;
-    }
-    let standard_deviation = f32::sqrt(standard_deviation_sum) / sums_length_float;
-    let sum_rate_length: usize = sum_rate_average.len();
-
-    let sum_rate_average_ptr = sum_rate_average.as_mut_ptr();
-    std::mem::forget(sum_rate_average);
+    let marginal_sum_increase_ptr = marginal_sum_increase.as_mut_ptr();
+    std::mem::forget(marginal_sum_increase);
 
     StatsStruct {
         standard_deviation: standard_deviation,
-        standard_deviation_sum: standard_deviation_sum,
-        sums_mean: sums_mean,
-        sum_rate_average_ptr: sum_rate_average_ptr,
+        mean_increase: mean_increase,
+        marginal_sum_increase_ptr: marginal_sum_increase_ptr,
         sum_rate_length: sum_rate_length,
     }
 }

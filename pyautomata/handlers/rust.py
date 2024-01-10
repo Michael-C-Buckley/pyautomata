@@ -21,9 +21,8 @@ class CanvasPointers(Structure):
 class StatsStructure(Structure):
     _fields_ = [
         ("standard_deviation", c_float),
-        ("standard_deviation_sum", c_float),
-        ("sums_mean", c_float),
-        ("sum_rate_average_ptr", POINTER(c_float)),
+        ("mean_increase", c_float),
+        ("marginal_sum_increase_ptr", POINTER(c_float)),
         ("sum_rate_length", c_size_t)
     ]
 
@@ -54,7 +53,7 @@ lib.free_memory.argtypes = [
     c_size_t           # size
 ]
 
-def compute_stats(canvas_sums: ndarray):
+def compute_stats(canvas_sums: ndarray) -> tuple[ndarray[float32], float, float]:
     """
     Python API for Rust FFI to calculate stats
     """
@@ -66,18 +65,17 @@ def compute_stats(canvas_sums: ndarray):
     
     # Move data into Python-owned memory space
     sum_shape = (stats_results.sum_rate_length,)
-    sum_rate_average = zeros(sum_shape, dtype=float32)
-    sum_rate_result = ctypeslib.as_array(stats_results.sum_rate_average_ptr, shape=sum_shape)
-    copyto(sum_rate_average, sum_rate_result)
+    marginal_sum_increase = zeros(sum_shape, dtype=float32)
+    sum_rate_result = ctypeslib.as_array(stats_results.marginal_sum_increase_ptr, shape=sum_shape)
+    copyto(marginal_sum_increase, sum_rate_result)
 
     # Free the memory allocated in Rust after translation
-    free_memory(stats_results.sum_rate_average_ptr, c_uint32, stats_results.sum_rate_length)
+    free_memory(stats_results.marginal_sum_increase_ptr, c_uint32, stats_results.sum_rate_length)
     
     standard_deviation = stats_results.standard_deviation
-    standard_deviation_sum = stats_results.standard_deviation_sum
-    sums_mean = stats_results.sums_mean
+    mean_increase = stats_results.mean_increase
 
-    return sum_rate_average, standard_deviation_sum, sums_mean, standard_deviation
+    return marginal_sum_increase, mean_increase, standard_deviation
 
 def free_memory(pointer, dtype, num_elements):
     """
