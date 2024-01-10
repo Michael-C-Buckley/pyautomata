@@ -47,15 +47,15 @@ def draw_standard_deviation(stats: StatsContainer, canvas: 'Canvas'):
     """
     Draw the standard deviations plots
     """
-    plt.title('Row sum average rate')
-    plt.plot(stats.sum_rate_average)
+    plt.title('Row sum increase rate')
+    plt.plot(stats.marginal_sum_increase)
 
     color_iterator = iter(['red', 'purple', 'orange', 'blue'])
     next_color = lambda: next(color_iterator, None)
 
     for i in range(4):
         color = next_color()
-        get_value = lambda v: stats.standard_deviations_map.get(v, None)
+        get_value = lambda v: stats.increase_standard_deviations_map.get(v, None)
         for value in [get_value(i), get_value(-i)]:
             plt.plot(yEq(value , (canvas.columns)//2), color=color)
 

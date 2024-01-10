@@ -25,21 +25,20 @@ except OSError:
 
 @dataclass
 class StatsContainer:
-    sum_rate_average: list[float]
-    standard_deviation_sum: float
-    mean: float
+    marginal_sum_increase: list[float]
+    mean_increase: float
     standard_deviation: float
 
-    def offset_standard_deviation(self, factor: int):
+    def offset_increase_standard_deviation(self, factor: int):
         return self.standard_deviation * factor
     
     @cached_property
-    def standard_deviations_map(self) -> dict[int, float]:
+    def increase_standard_deviations_map(self) -> dict[int, float]:
         standard_deviations = {}
         for i in range(-3, 4):
             if i == 0:
                 continue
-            standard_deviations[i] = self.mean + self.offset_standard_deviation(i)
+            standard_deviations[i] = self.mean_increase + self.offset_increase_standard_deviation(i)
         return standard_deviations
 
 def calculate_stats(canvas: 'Canvas') -> StatsContainer:
@@ -55,29 +54,21 @@ def calculate_stats(canvas: 'Canvas') -> StatsContainer:
 
 
 def python_calculate_stats(canvas: 'Canvas') -> StatsContainer:
-    total_sums = 0
-    standard_deviation_sum = 0
+    """
+    Native Python API for calculating stats if Rust is not available
+    """
+    marginal_sum_increase = []
+    total_sum_increase = 0
 
-    sum_rate_average = []
-    for i in range(len(canvas.sums)):
-        canvas_value = canvas.sums[i]
-        if canvas_value == 0:
-            continue
-        result = i/canvas.sums[i]
-        result = result if not isnan(result) else 0.0
-        sum_rate_average.append(result)
-        total_sums =+ i
+    for i, sum_value in enumerate(canvas.sums):
+        if sum_value != 0:
+            increase = i / sum_value
+            marginal_sum_increase.append(increase)
+            total_sum_increase += increase
 
-    sums_mean = total_sums/len(canvas.sums)
-    distance_from_mean = []
+    mean_increase = total_sum_increase / len(marginal_sum_increase)
 
-    for i in sum_rate_average:
-        var = (i - sums_mean)
-        distance_from_mean.append(var)
-        var = abs(var) ** 2
-        standard_deviation_sum += var
+    variance_sum = sum((x - mean_increase) ** 2 for x in marginal_sum_increase)
+    standard_deviation = sqrt(variance_sum / len(marginal_sum_increase))
 
-    standard_deviation = sqrt(standard_deviation_sum/len(canvas.sums))
-
-    return StatsContainer(sum_rate_average, standard_deviation_sum,
-                          sums_mean, standard_deviation)
+    return StatsContainer(marginal_sum_increase, mean_increase, standard_deviation)
