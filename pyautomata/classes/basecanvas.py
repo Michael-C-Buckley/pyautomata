@@ -52,7 +52,10 @@ class BaseCanvas:
         """
         Generate the canvas based on the supplied pattern
         """
-        rows = (self.columns//2)
+        if pattern in [Pattern.RIGHT, Pattern.LEFT]:
+            rows = self.columns
+        else:
+            rows = (self.columns//2)
         canvas = zeros([rows, self.columns], uint8)
         ascontiguousarray(canvas)
 
