@@ -43,7 +43,7 @@ class Automata:
         return f'Automata: Rule {self.rule}'
     
     def get_canvas(self, pattern: Pattern = Pattern.STANDARD,
-                   columns: int = 100, save: bool = True,
+                   columns: int = 100, save: bool = False,
                    regenerate: bool = False) -> 'Canvas':
         """
         Method to generate the typical pattern, starting with a single point.
