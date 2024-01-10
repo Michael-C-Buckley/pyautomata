@@ -52,16 +52,16 @@ class BaseCanvas:
         """
         Generate the canvas based on the supplied pattern
         """
-        rows = (self.columns//2) + 1
+        rows = (self.columns//2)
         canvas = zeros([rows, self.columns], uint8)
         ascontiguousarray(canvas)
 
         pattern_map = {
             Pattern.LEFT: 0,
-            Pattern.RIGHT: self.columns,
+            Pattern.RIGHT: self.columns-1,
             Pattern.STANDARD: self.columns//2,
         }
-        patter_iteration_map = {
+        pattern_iteration_map = {
             Pattern.RANDOM: lambda _: randint(0, 1),
             Pattern.ALTERNATING: lambda i: 0 if i % 2 == 0 else 1,
         }
@@ -76,8 +76,8 @@ class BaseCanvas:
             canvas[0, pattern_map[pattern]] = 1
             row_sum = 1
 
-        if pattern in patter_iteration_map:
-            func = patter_iteration_map[pattern]
+        if pattern in pattern_iteration_map:
+            func = pattern_iteration_map[pattern]
             for i, _ in enumerate(canvas[0]):
                 value = func(i)
                 canvas[0][i] = value
@@ -119,7 +119,6 @@ class BaseCanvas:
         file_path = path.join(CACHE_DIR, filename)
         return file_path
         
-
     def save(self):
         """
         Method to save the canvas to avoid re-calculation in the future

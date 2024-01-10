@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING
 
 from pyautomata.classes.basecanvas import BaseCanvas
-from pyautomata.render import draw_plot
+from pyautomata.render import draw_plot, draw_standard_deviation
+from pyautomata.stats import StatsContainer, calculate_stats
 
 # Local Modules
 from pyautomata.classes.general import Pattern
@@ -17,9 +18,19 @@ class Canvas(BaseCanvas):
     def __init__(self, automata: 'Automata', pattern: Pattern = Pattern.STANDARD,
                  columns: int = 100) -> None:
         super().__init__(automata, pattern, columns)
+        self.stats: StatsContainer = calculate_stats(self)
 
     def render(self, max_depth: int = None, filename: str = None):
+        """
+        Draws a visual representation of the canvas
+        """
         if max_depth is not None:
             if max_depth < self.columns:
                 raise ValueError(f'Max depth cannot exceed canvas columns ({max_depth} v. {self.columns})')
         draw_plot(self, max_depth, filename)
+
+    def draw_sums_deviations(self):
+        """
+        Charts the calculated row sums and the standard deviations
+        """
+        draw_standard_deviation(self.stats, self)
