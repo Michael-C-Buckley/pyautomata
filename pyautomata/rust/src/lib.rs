@@ -93,6 +93,62 @@ pub extern "C" fn generate_canvas(
     }
 }
 
+#[repr(C)]
+pub struct StatsStruct {
+    standard_deviation: f32,
+    standard_deviation_sum: f32,
+    sums_mean: f32,
+    sum_rate_average_ptr: *mut f32,
+    sum_rate_length: usize,
+}
+
+#[no_mangle]
+pub extern "C" fn calculate_stats(canvas_sums: *const u32, sums_length: usize) -> StatsStruct {
+    // Stat calculation
+
+    let sums_slice = unsafe {
+        slice::from_raw_parts(canvas_sums, sums_length)
+    };
+
+    let mut total_sums: f32 = 0.0;
+    let mut sum_rate_average: Vec<f32> = vec![0.0; sums_length];
+
+    for (i, &sum) in sums_slice.iter().enumerate() {
+        if sum == 0 {
+            sum_rate_average.pop();
+            continue;
+        }
+        let sum_float: f32 = sum as f32;
+        let i_float: f32 = i as f32;
+        sum_rate_average[i] = i_float/sum_float;
+        total_sums += sum_rate_average[i];
+    }
+
+    let sums_length_float: f32 = sums_length as f32;
+    let sums_mean: f32 = total_sums / sums_length_float;
+
+    let mut standard_deviation_sum: f32 = 0.0;
+
+    for item in &sum_rate_average {
+        let item_float: f32 = *item as f32;
+        let variance: f32 = (item_float - sums_mean).powf(2.0);
+        standard_deviation_sum += variance;
+    }
+    let standard_deviation = f32::sqrt(standard_deviation_sum) / sums_length_float;
+    let sum_rate_length: usize = sum_rate_average.len();
+
+    let sum_rate_average_ptr = sum_rate_average.as_mut_ptr();
+    std::mem::forget(sum_rate_average);
+
+    StatsStruct {
+        standard_deviation: standard_deviation,
+        standard_deviation_sum: standard_deviation_sum,
+        sums_mean: sums_mean,
+        sum_rate_average_ptr: sum_rate_average_ptr,
+        sum_rate_length: sum_rate_length,
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn free_memory(ptr: *mut u8, size_in_bytes: usize) {
     // Function to release the memory after it has been transferred into Python-owned memory

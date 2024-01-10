@@ -7,12 +7,19 @@ from math import sqrt
 from typing import TYPE_CHECKING
 
 # Third-Party Modules
-from numpy import linspace, isnan
-from icecream import ic
+from numpy import isnan
 
 # Local Modules
 if TYPE_CHECKING:
     from pyautomata.classes.canvas import Canvas
+
+# Foreign Function Interfacing and checking
+RUST_AVAILABLE = False
+try:
+    from pyautomata.handlers.rust import compute_stats
+    RUST_AVAILABLE = True
+except OSError:
+    pass
 
 # Stats for Sums
 
@@ -35,10 +42,19 @@ class StatsContainer:
             standard_deviations[i] = self.mean + self.offset_standard_deviation(i)
         return standard_deviations
 
-
 def calculate_stats(canvas: 'Canvas') -> StatsContainer:
-    y = linspace(0, canvas.columns, canvas.columns)
+    """
+    Rust-powered API for calculating stats
+    """
+    if RUST_AVAILABLE:
+        results = compute_stats(canvas.sums)
+        return StatsContainer(*results)
+    else:
+        print('PyAutomata Warning: Rust binary not found, falling back on Python logic')
+        return python_calculate_stats(canvas)
 
+
+def python_calculate_stats(canvas: 'Canvas') -> StatsContainer:
     total_sums = 0
     standard_deviation_sum = 0
 
