@@ -32,7 +32,9 @@ pub extern "C" fn generate_canvas(
     rows: usize, 
     columns: usize, 
     rules: *const u8,
-    rules_length: usize
+    rules_length: usize,
+    boost: bool,
+    central_line: usize
 ) -> CanvasPointers {
 
     let mut canvas = vec![0; rows * columns];
@@ -57,7 +59,17 @@ pub extern "C" fn generate_canvas(
 
     for row in 0..rows-1 {
         let mut row_sum: u32 = 0;
-        for col in 0..columns {
+
+        let mut start: usize = 0;
+        let mut stop: usize = columns;
+
+        // Boosting masks untouched whitespace when appropriate
+        if boost {
+            start = central_line.saturating_sub(row + 2);
+            stop = std::cmp::min(central_line + row + 2, columns);
+        }
+
+        for col in start..stop {
             let left = if col == 0 { 0 } else { canvas[row * columns + col - 1] };
             let center = canvas[row * columns + col];
             let right = if col == columns - 1 { 0 } else { canvas[row * columns + col + 1] };
