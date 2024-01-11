@@ -14,12 +14,7 @@ if TYPE_CHECKING:
     from pyautomata.classes.canvas import Canvas
 
 # Foreign Function Interfacing and checking
-RUST_AVAILABLE = False
-try:
-    from pyautomata.handlers.rust import compute_stats
-    RUST_AVAILABLE = True
-except OSError:
-    pass
+from pyautomata.handlers.rust import compute_stats, RUST_AVAILABLE
 
 # Stats for Sums
 
@@ -49,7 +44,6 @@ def calculate_stats(canvas: 'Canvas') -> StatsContainer:
         results = compute_stats(canvas.sums)
         return StatsContainer(*results)
     else:
-        print('PyAutomata Warning: Rust binary not found, falling back on Python logic')
         return python_calculate_stats(canvas)
 
 

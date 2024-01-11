@@ -9,7 +9,20 @@ from ctypes import (
 # Third-Party Modules
 from numpy import ctypeslib, ndarray, copyto, zeros, uint8, uint32, float32
 
-lib = CDLL('pyautomata/rust/target/release/libpyautomata_rust.so')
+try:
+    lib = CDLL('pyautomata/rust/target/release/libpyautomata_rust.so')
+    RUST_AVAILABLE = True
+except (OSError, ImportError):
+    """
+    Failure to import will create a dummy instance to accept modification and
+    not error, however, the global constant will be referenced by anything that
+    uses Rust FFI APIs and will default to Python logic if not available
+    """
+    RUST_AVAILABLE = False
+    from unittest.mock import Mock
+    from warnings import warn
+    warn('PyAutomata: Rust binary not found, falling back on Python logic')
+    lib = Mock()
 
 
 class CanvasPointers(Structure):

@@ -19,12 +19,7 @@ from pyautomata.classes.general import Pattern
 from pyautomata.version import VERSION
 
 # Foreign Function Interfacing and checking
-RUST_AVAILABLE = False
-try:
-    from pyautomata.handlers.rust import generate_canvas
-    RUST_AVAILABLE = True
-except OSError:
-    pass
+from pyautomata.handlers.rust import generate_canvas, RUST_AVAILABLE
 
 if TYPE_CHECKING:
     from pyautomata.classes.automata import Automata
@@ -48,9 +43,11 @@ class BaseCanvas:
     def __repr__(self) -> str:
         return f'Canvas: Rule {self.automata.rule} - {self.description}'
 
-    def generate(self, pattern: Pattern = Pattern.STANDARD):
+    def generate(self, pattern: Pattern = Pattern.STANDARD,
+                 force_python: bool = False):
         """
-        Generate the canvas based on the supplied pattern
+        Procedure to generate the canvas based on the supplied pattern.
+        `force_python` will bypass the Rust API and use Python native logic.
         """
         if pattern in [Pattern.RIGHT, Pattern.LEFT]:
             rows = self.columns
@@ -89,11 +86,10 @@ class BaseCanvas:
         boost = True if pattern in pattern_map else False
         central_line = 0 if not boost else pattern_map[pattern]
 
-        if RUST_AVAILABLE:
+        if RUST_AVAILABLE and not force_python:
             canvas, sums = generate_canvas(canvas[0], rows, self.columns, self.automata.flat_pattern, boost, central_line)
             self.sums = np_insert(sums, 0, row_sum)
         else:
-            print('PyAutomata Warning: Rust binary not found, falling back on Python logic')
             canvas = self.python_generate(canvas, rows)
 
         self.result = canvas
