@@ -16,10 +16,8 @@ from numpy import (
 
 # Local Modules
 from pyautomata.classes.general import Pattern
-from pyautomata.version import VERSION
-
-# Foreign Function Interfacing and checking
 from pyautomata.handlers.rust import generate_canvas, RUST_AVAILABLE
+from pyautomata.version import VERSION
 
 if TYPE_CHECKING:
     from pyautomata.classes.automata import Automata
@@ -31,14 +29,19 @@ class BaseCanvas:
     Canvas base class containing fundamental attributes
     """
     def __init__(self, automata: 'Automata', pattern: Pattern = Pattern.STANDARD,
-                 columns: int = 100) -> None:
+                 columns: int = 100, force_python: bool = False,
+                 generate: bool = True) -> None:
         
         self.columns = columns
         self.automata = automata
         self.description = pattern.value
         self.version = VERSION
+        self.pattern = pattern
+        self.sums = None
+        self.result = None
 
-        self.generate(pattern)
+        if generate:
+            self.generate(pattern, force_python=force_python)
 
     def __repr__(self) -> str:
         return f'Canvas: Rule {self.automata.rule} - {self.description}'

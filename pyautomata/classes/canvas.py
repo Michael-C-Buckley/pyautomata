@@ -16,9 +16,20 @@ class Canvas(BaseCanvas):
     circular import and dependency errors
     """
     def __init__(self, automata: 'Automata', pattern: Pattern = Pattern.STANDARD,
-                 columns: int = 100) -> None:
-        super().__init__(automata, pattern, columns)
-        self.stats: StatsContainer = calculate_stats(self)
+                 columns: int = 100, force_python: bool = False,
+                 generate: bool = True) -> None:
+        super().__init__(automata, pattern, columns, force_python, generate)
+        
+        if generate:
+            self._stats: StatsContainer = calculate_stats(self)
+
+    @property
+    def stats(self):
+        if not self.result:
+            self.generate(self.pattern)
+        if not self._stats:
+            self._stats: StatsContainer = calculate_stats(self)
+        return self._stats
 
     def render(self, max_depth: int = None, filename: str = None):
         """
