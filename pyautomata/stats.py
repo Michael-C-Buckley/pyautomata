@@ -6,15 +6,12 @@ from functools import cached_property
 from math import sqrt
 from typing import TYPE_CHECKING
 
-# Third-Party Modules
-from numpy import isnan
-
 # Local Modules
 if TYPE_CHECKING:
     from pyautomata.classes.canvas import Canvas
 
 # Foreign Function Interfacing and checking
-from pyautomata.handlers.rust import compute_stats, RUST_AVAILABLE
+from pyautomata.handlers import compute_stats, RUST_AVAILABLE
 
 # Stats for Sums
 

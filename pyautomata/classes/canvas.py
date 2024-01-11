@@ -1,11 +1,13 @@
+# Project PyAutomata Canvas Class Library
+
+# Python Modules
 from typing import TYPE_CHECKING
 
+# Local Modules
 from pyautomata.classes.basecanvas import BaseCanvas
+from pyautomata.classes.general import Pattern
 from pyautomata.render import draw_plot, draw_standard_deviation
 from pyautomata.stats import StatsContainer, calculate_stats
-
-# Local Modules
-from pyautomata.classes.general import Pattern
 
 if TYPE_CHECKING:
     from pyautomata.classes.automata import Automata
@@ -25,9 +27,9 @@ class Canvas(BaseCanvas):
 
     @property
     def stats(self):
-        if not self.result:
+        if self.result is None:
             self.generate(self.pattern)
-        if not self._stats:
+        if self._stats is None:
             self._stats: StatsContainer = calculate_stats(self)
         return self._stats
 

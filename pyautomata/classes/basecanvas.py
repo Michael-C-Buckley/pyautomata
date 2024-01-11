@@ -16,7 +16,7 @@ from numpy import (
 
 # Local Modules
 from pyautomata.classes.general import Pattern
-from pyautomata.handlers.rust import generate_canvas, RUST_AVAILABLE
+from pyautomata.handlers import generate_canvas, RUST_AVAILABLE
 from pyautomata.version import VERSION
 
 if TYPE_CHECKING:
