@@ -93,7 +93,7 @@ class BaseCanvas:
             canvas, sums = generate_canvas(canvas[0], rows, self.columns, self.automata.flat_pattern, boost, central_line)
             self.sums = np_insert(sums, 0, row_sum)
         else:
-            canvas = self.python_generate(canvas, rows)
+            canvas = self.python_generate(canvas, rows, boost, central_line)
 
         self.result = canvas
 
