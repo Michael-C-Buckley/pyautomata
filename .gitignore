@@ -94,6 +94,9 @@ docs/_build/
 # PyBuilder
 target/
 
+# Python line-profiler
+*.lprof
+
 # Jupyter Notebook
 .ipynb_checkpoints
 
