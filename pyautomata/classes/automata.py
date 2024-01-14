@@ -33,17 +33,19 @@ class Automata:
     def __repr__(self) -> str:
         return f'Automata: Rule {self.rule}'
     
-    def get_canvas(self, pattern: Pattern|str = Pattern.STANDARD,
-                   columns: int = 100) -> 'Canvas':
+    def get_canvas(self, columns: int = 100,
+                   pattern: Pattern|str = Pattern.STANDARD,
+                   force_python: bool = False) -> 'Canvas':
         """
         Method to generate the typical pattern, starting with a single point.
 
         `columns` is an `int` of the width that the canvas will be generated to
         """
-        return Canvas(self, pattern, columns)
+        return Canvas(self, pattern, columns, force_python)
     
-    def get_random_canvas(self, columns: int = 100) -> 'Canvas':
+    def get_random_canvas(self, columns: int = 100,
+                          force_python: bool = False) -> 'Canvas':
         """
         Wrapper method for pre-defined random canvas arguments
         """
-        return self.get_canvas(Pattern.RANDOM, columns)
+        return self.get_canvas(columns, Pattern.RANDOM, force_python)

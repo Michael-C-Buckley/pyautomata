@@ -40,7 +40,7 @@ class BaseCanvas:
         self.result = None
 
         if generate:
-            self.generate(pattern, force_python=force_python)
+            self.generate(pattern, force_python)
 
     def __repr__(self) -> str:
         return f'Canvas: Rule {self.automata.rule} - {self.description}'
@@ -102,7 +102,6 @@ class BaseCanvas:
         Alternative function to internally generate a canvas instead of using
         the Rust API
         """
-
         for i in arange(0, rows-1):
 
             # Boost masking area determination
