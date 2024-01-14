@@ -5,19 +5,34 @@ from ctypes import (
     POINTER, sizeof, cast, CDLL, Structure,
     c_bool, c_size_t, c_uint8, c_uint32, c_float
 )
+from os import path
 
 # Third-Party Modules
 from numpy import ctypeslib, ndarray, copyto, zeros, uint8, uint32, float32
 
+
+# Path construction
+
+# Docker path
+rust_path = '/rust/target/release/libpyautomata_rust.so'
+library_path = f'/app/pyautomata{rust_path}'
+
+# Locally install path
+if not path.exists(library_path):
+    current_path = path.dirname(path.abspath(__file__))
+    files_path = path.abspath(path.join(current_path, '..'))
+    library_path = f'{files_path}{rust_path}'
+
 try:
-    lib = CDLL('pyautomata/rust/target/release/libpyautomata_rust.so')
+    lib = CDLL(library_path)
     RUST_AVAILABLE = True
-except (OSError, ImportError):
+except (OSError, ImportError) as e:
     """
     Failure to import will create a dummy instance to accept modification and
     not error, however, the global constant will be referenced by anything that
     uses Rust FFI APIs and will default to Python logic if not available
     """
+    print(e)
     RUST_AVAILABLE = False
     from unittest.mock import Mock
     from warnings import warn

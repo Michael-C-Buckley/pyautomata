@@ -13,8 +13,9 @@ ENV PATH="/home/jovyan/.cargo/bin:${PATH}"
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Copy the project
-COPY . .
+# Copy the project and install it
+COPY . /app
+RUN pip install /app
 
 # Build Rust library
 RUN cd pyautomata/rust && cargo build --release
