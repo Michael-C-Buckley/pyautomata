@@ -1,16 +1,11 @@
 # Cellular Automata
 
-# Python Modules
-from pickle import load
-from os import path
-
 # Third-Party Modules
 from numpy import array, binary_repr, uint8
 
 # Local Modules
 from pyautomata.classes.canvas import Canvas
 from pyautomata.classes.general import Pattern
-from pyautomata.version import VERSION
 
 class Automata:
     def __init__(self, rule: int) -> None:
@@ -38,7 +33,7 @@ class Automata:
     def __repr__(self) -> str:
         return f'Automata: Rule {self.rule}'
     
-    def get_canvas(self, pattern: Pattern = Pattern.STANDARD,
+    def get_canvas(self, pattern: Pattern|str = Pattern.STANDARD,
                    columns: int = 100) -> 'Canvas':
         """
         Method to generate the typical pattern, starting with a single point.

@@ -29,6 +29,8 @@ class BaseCanvas:
                  columns: int = 100, force_python: bool = False,
                  generate: bool = True) -> None:
         
+        pattern = pattern if isinstance(pattern, Pattern) else Pattern.from_string(pattern)
+        
         self.columns = columns
         self.automata = automata
         self.description = pattern.value
