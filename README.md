@@ -1,5 +1,7 @@
 # Project PyAutomata
 
+![Wolfram Rule 30](https://github.com/Michael-C-Buckley/pyautomata/blob/master/resources/rule30-250.png)
+
 PyAutomata is an in-progress library and tool set designed for computing and evaluating cellular automata.
 
 The first series of support automata are Steven Wolfram's original series of cellular automata (notably including Rule 30).
