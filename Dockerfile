@@ -1,21 +1,19 @@
 # Project PyAutomata Docker
-
-# Build stage for compiling Rust code
-FROM rust:latest as rust-builder
-WORKDIR /usr/src/rust
-COPY pyautomata/rust .
-RUN cargo build --release
-
-# Python/Final Stage
-FROM python:3.11.6-slim as python-builder
+FROM jupyter/scipy-notebook
 
 WORKDIR /usr/src/app
-COPY --from=rust-builder /usr/src/rust/target/release/libpyautomata_rust.so .
 COPY . .
-
 RUN pip install -r requirements.txt
+
+# Install Rust and build Requirements
+USER root
+RUN apt-get update && apt-get install -y curl build-essential
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/home/jovyan/.cargo/bin:${PATH}"
+RUN cd /usr/src/app/pyautomata/rust && cargo build --release
+USER jovyan
+
 EXPOSE 8888
 ENV NAME PyAutomata
 
 CMD ["jupyter", "notebook", "--ip='*'", "--port=8888", "--no-browser", "--allow-root"]
-
