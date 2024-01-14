@@ -20,6 +20,10 @@ All other requirements are handled by Docker at build and container launch.
 
 * Clone repository
 * Build with Docker
-* Launch with `docker compose up --build`
+* Launch with `docker compose up`
 
 The resulting Jupyter instance will be bound to `localhost:8888`.
+
+## Presentation Notebooks
+
+There are example Jupyter notebooks under the branch `presentation`.
