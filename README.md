@@ -26,4 +26,4 @@ The resulting Jupyter instance will be bound to `localhost:8888`.
 
 ## Presentation Notebooks
 
-There are example Jupyter notebooks under the branch `presentation`.
+There are example Jupyter notebooks under the branch `presentation` with filled in data.  The notebooks under the main branch are unexecuted.
