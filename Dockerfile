@@ -1,5 +1,5 @@
 # Project PyAutomata Docker
-FROM jupyter/scipy-notebook
+FROM jupyter/base-notebook
 USER root
 
 WORKDIR /usr/src/app
