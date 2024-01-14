@@ -5,16 +5,12 @@ from pickle import load
 from os import path
 
 # Third-Party Modules
-from appdirs import user_data_dir
 from numpy import array, binary_repr, uint8
 
 # Local Modules
 from pyautomata.classes.canvas import Canvas
 from pyautomata.classes.general import Pattern
 from pyautomata.version import VERSION
-
-CACHE_DIR = user_data_dir()
-
 
 class Automata:
     def __init__(self, rule: int) -> None:
@@ -43,39 +39,16 @@ class Automata:
         return f'Automata: Rule {self.rule}'
     
     def get_canvas(self, pattern: Pattern = Pattern.STANDARD,
-                   columns: int = 100, save: bool = False,
-                   regenerate: bool = False) -> 'Canvas':
+                   columns: int = 100) -> 'Canvas':
         """
         Method to generate the typical pattern, starting with a single point.
 
-        `columns` is an `int` of the deep that the canvas will be generated to
+        `columns` is an `int` of the width that the canvas will be generated to
         """
-        filename = f'R{self.rule} L{columns} {pattern.value}'
-
-        generate = lambda: Canvas(self, pattern, columns)
-
-        if regenerate:
-            canvas = generate()
-
-        else:
-            try:
-                with open(path.join(CACHE_DIR, f'{filename}.pkl'), 'rb') as file:
-                    canvas: Canvas = load(file)
-                if VERSION != canvas.version:
-                    canvas = generate()
-                else:
-                    canvas.load_array()
-                return canvas
-            except Exception as e:
-                canvas = generate()
-        
-        if save:
-            canvas.save()
-
-        return canvas
+        return Canvas(self, pattern, columns)
     
     def get_random_canvas(self, columns: int = 100) -> 'Canvas':
         """
         Wrapper method for pre-defined random canvas arguments
         """
-        return self.get_canvas(Pattern.RANDOM, columns, save=False, regenerate=True)
+        return self.get_canvas(Pattern.RANDOM, columns)
