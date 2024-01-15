@@ -27,3 +27,6 @@ The resulting Jupyter instance will be bound to `localhost:8888`.
 ## Presentation Notebooks
 
 There are example Jupyter notebooks under the branch `presentation` with filled in data.  The notebooks under the main branch are unexecuted.
+
+* [Sample notebook](https://github.com/Michael-C-Buckley/pyautomata/blob/presentation/notebooks/sample.ipynb): Shows examples of the library generating automata
+* [Benchmark/performance notebook](https://github.com/Michael-C-Buckley/pyautomata/blob/presentation/notebooks/perfomance.ipynb): compares the project's Rust and Python performance
