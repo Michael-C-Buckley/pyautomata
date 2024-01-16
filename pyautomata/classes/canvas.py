@@ -39,5 +39,5 @@ class Canvas(BaseCanvas):
         """
         Charts the calculated row sums and the standard deviations
         """
-        draw_standard_deviation(self.stats, self, start, end)
+        draw_standard_deviation(self.stats, start, end)
     

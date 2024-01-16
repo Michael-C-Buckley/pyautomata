@@ -20,7 +20,7 @@ class BaseCanvas:
     Canvas base class containing fundamental attributes
     """
     def __init__(self, rule: int, pattern: Pattern = Pattern.STANDARD,
-                 columns: int = 100, force_python: bool = False,
+                 rows: int = 100, force_python: bool = False,
                  generate: bool = True) -> None:
         
         init_except_message = 'Rule must be an integer between 1 and 256'
@@ -31,7 +31,9 @@ class BaseCanvas:
         
         pattern = pattern if isinstance(pattern, Pattern) else Pattern.from_string(pattern)
         
-        self.columns = columns
+        self.rows = rows
+        self.columns = self.rows if pattern in [Pattern.RIGHT, Pattern.LEFT] else (self.rows*2)
+
         self.rule = rule
         self.description = pattern.value
 
@@ -68,16 +70,12 @@ class BaseCanvas:
         Procedure to generate the canvas based on the supplied pattern.
         `force_python` will bypass the Rust API and use Python native logic.
         """
-        if pattern in [Pattern.RIGHT, Pattern.LEFT]:
-            rows = self.columns
-        else:
-            rows = (self.columns//2)
-        canvas = zeros([rows, self.columns], uint8)
+        canvas = zeros([self.rows, self.columns], uint8)
         ascontiguousarray(canvas)
 
         pattern_map = {
             Pattern.LEFT: 0,
-            Pattern.RIGHT: self.columns-1,
+            Pattern.RIGHT: self.rows-1,
             Pattern.STANDARD: self.columns//2,
         }
         pattern_iteration_map = {
@@ -106,10 +104,10 @@ class BaseCanvas:
         central_line = 0 if not boost else pattern_map[pattern]
 
         if RUST_AVAILABLE and not force_python:
-            canvas, sums = generate_canvas(canvas[0], rows, self.columns, self.flat_rule_set, boost, central_line)
+            canvas, sums = generate_canvas(canvas[0], self.rows, self.columns, self.flat_rule_set, boost, central_line)
             self.sums = np_insert(sums, 0, row_sum)
         else:
-            canvas = self.python_generate(canvas, rows, boost, central_line)
+            canvas = self.python_generate(canvas, self.rows, boost, central_line)
 
         self.result = canvas
 

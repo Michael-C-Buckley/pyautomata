@@ -13,16 +13,6 @@ from pyautomata.stats import StatsContainer
 if TYPE_CHECKING:
     from pyautomata.classes.canvas import Canvas
 
-def y_equals(value: float, length: int) -> ndarray:
-    """
-    Returns a line space that is a flat line of specified length
-    """
-    yFunc = []
-    for i in range(length):
-        yFunc.append(value)
-
-    return array(yFunc, float32)
-
 def prepare_plot(x_label: str, y_label: str, title: str, grid: bool = True,
                  legend: bool = False):
     """
@@ -41,11 +31,11 @@ def draw_plot(canvas: 'Canvas', max_depth: int = None, filename: str = None):
     Draw a canvas plot
     """
     if max_depth is None:
-        max_depth = canvas.columns+1
+        max_depth = canvas.rows+1
 
     inverted_cmap = LinearSegmentedColormap.from_list('inverted_gray', ['white', 'black'])
 
-    plt.imshow(canvas.result[:, 1:max_depth], cmap=inverted_cmap)
+    plt.imshow(canvas.result[:, 1:max_depth*2], cmap=inverted_cmap)
     title = f'Rule {canvas.rule}: {canvas.description}'
     plt.title(title)
     
@@ -56,8 +46,7 @@ def draw_plot(canvas: 'Canvas', max_depth: int = None, filename: str = None):
             filename = title
         plt.savefig(filename)
 
-def draw_standard_deviation(stats: StatsContainer, canvas: 'Canvas',
-                            start: int = None, end: int = None) -> None:
+def draw_standard_deviation(stats: StatsContainer, start: int = None, end: int = None) -> None:
     """
     Draw the standard deviations plots
     """
@@ -74,7 +63,8 @@ def draw_standard_deviation(stats: StatsContainer, canvas: 'Canvas',
         color = next_color()
         get_value = lambda v: stats.increase_standard_deviations_map.get(v, None)
         for value in [get_value(i), get_value(-i)]:
-            plt.plot(y_equals(value , end//2), color=color)
+            if value:
+                plt.axhline(y=value, color=color)
 
     plt.grid()
     plt.show()

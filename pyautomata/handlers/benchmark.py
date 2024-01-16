@@ -4,7 +4,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from time import perf_counter
+from time import perf_counter, sleep
 
 # Local Modules
 from pyautomata.classes.canvas import Canvas
@@ -26,8 +26,6 @@ def benchmark_calculation(engine: Engine, start: int = 100, stop: int = 1000,
     """
     Generate data on the time it takes to generate canvases
     """
-    canvas = Canvas(rule, generate=False)
-
     engine_map = {
         Engine.RUST: False,
         Engine.PYTHON: True,
@@ -40,9 +38,8 @@ def benchmark_calculation(engine: Engine, start: int = 100, stop: int = 1000,
 
     for i in range(start, stop+step, step):
         print(f'Working on: {i} in {engine.value} --------', end='\r')
-        canvas.columns = i
         start_time = perf_counter()
-        canvas.generate(force_python=engine_map.get(engine))
+        Canvas(rule, i, force_python=engine_map.get(engine))
         calculation_dict[i] = perf_counter() - start_time
 
     print(f'Completed {engine.value} generation -------------', end='\r')
