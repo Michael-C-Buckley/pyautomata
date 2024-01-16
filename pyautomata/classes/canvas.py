@@ -42,8 +42,9 @@ class Canvas(BaseCanvas):
                 raise ValueError(f'Max depth cannot exceed canvas columns ({max_depth} v. {self.columns})')
         draw_plot(self, max_depth, filename)
 
-    def draw_sums_deviations(self):
+    def draw_sums_deviations(self, start: int = None, end: int = None):
         """
         Charts the calculated row sums and the standard deviations
         """
-        draw_standard_deviation(self.stats, self)
+        draw_standard_deviation(self.stats, self, start, end)
+    
