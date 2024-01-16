@@ -1,26 +1,19 @@
 # Project PyAutomata Canvas Class Library
 
-# Python Modules
-from typing import TYPE_CHECKING
-
 # Local Modules
 from pyautomata.classes.basecanvas import BaseCanvas
 from pyautomata.classes.general import Pattern
 from pyautomata.render import draw_plot, draw_standard_deviation
 from pyautomata.stats import StatsContainer, calculate_stats
 
-if TYPE_CHECKING:
-    from pyautomata.classes.automata import Automata
-
 class Canvas(BaseCanvas):
     """
     Intermediate class for methods that the Base class cannot to prevent
     circular import and dependency errors
     """
-    def __init__(self, automata: 'Automata', pattern: Pattern = Pattern.STANDARD,
-                 columns: int = 100, force_python: bool = False,
-                 generate: bool = True) -> None:
-        super().__init__(automata, pattern, columns, force_python, generate)
+    def __init__(self, rule: int, columns: int = 100, pattern: Pattern = Pattern.STANDARD,
+                 force_python: bool = False, generate: bool = True) -> None:
+        super().__init__(rule, pattern, columns, force_python, generate)
         
         if generate:
             self._stats: StatsContainer = calculate_stats(self)

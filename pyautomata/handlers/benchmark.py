@@ -6,11 +6,8 @@ from datetime import datetime
 from enum import Enum
 from time import perf_counter
 
-# Third-Party Modules
-
-
 # Local Modules
-from pyautomata import Automata, Canvas
+from pyautomata.classes.canvas import Canvas
 from pyautomata.handlers.rust import RUST_AVAILABLE
 
 class Engine(Enum):
@@ -29,8 +26,7 @@ def benchmark_calculation(engine: Engine, start: int = 100, stop: int = 1000,
     """
     Generate data on the time it takes to generate canvases
     """
-    automata = Automata(rule)
-    canvas = Canvas(automata, generate=False)
+    canvas = Canvas(rule, generate=False)
 
     engine_map = {
         Engine.RUST: False,

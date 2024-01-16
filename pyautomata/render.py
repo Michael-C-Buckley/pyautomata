@@ -1,7 +1,7 @@
 # PyAutomata Rendering Module
 
 # Python Modules
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 # Third-Party Modules
 import matplotlib.pyplot as plt
@@ -29,7 +29,7 @@ def prepare_plot(x_label: str, y_label: str, title: str, grid: bool = True,
     Wrapper function for de-cluttering common pyplot items
     """
     plt.xlabel(x_label)
-    plt.ylabel(y_label);
+    plt.ylabel(y_label)
     plt.title(title)
     plt.grid(grid)
     if legend:
@@ -46,7 +46,7 @@ def draw_plot(canvas: 'Canvas', max_depth: int = None, filename: str = None):
     inverted_cmap = LinearSegmentedColormap.from_list('inverted_gray', ['white', 'black'])
 
     plt.imshow(canvas.result[:, 1:max_depth], cmap=inverted_cmap)
-    title = f'Rule {canvas.automata.rule}: {canvas.description}'
+    title = f'Rule {canvas.rule}: {canvas.description}'
     plt.title(title)
     
     if plt.isinteractive():

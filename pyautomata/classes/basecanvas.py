@@ -1,50 +1,67 @@
 # PyAutomata Base Canvas
 
 # Python Modules
-from os import path
-from pickle import dump
 from random import randint
-from typing import TYPE_CHECKING
 
 # Third-Party Modules
 from numpy import (
     arange, array, ascontiguousarray, 
-    save as np_save, load as np_load, insert as np_insert,
+    insert as np_insert, binary_repr,
     zeros, uint8, ndarray,
 )
 
 # Local Modules
 from pyautomata.classes.general import Pattern
-from pyautomata.handlers import generate_canvas, RUST_AVAILABLE
+from pyautomata.handlers.rust import generate_canvas, RUST_AVAILABLE
 from pyautomata.version import VERSION
-
-if TYPE_CHECKING:
-    from pyautomata.classes.automata import Automata
 
 class BaseCanvas:
     """
     Canvas base class containing fundamental attributes
     """
-    def __init__(self, automata: 'Automata', pattern: Pattern = Pattern.STANDARD,
+    def __init__(self, rule: int, pattern: Pattern = Pattern.STANDARD,
                  columns: int = 100, force_python: bool = False,
                  generate: bool = True) -> None:
+        
+        init_except_message = 'Rule must be an integer between 1 and 256'
+        if type(rule) != int:
+            raise ValueError(init_except_message)
+        if not 1 <= rule <= 256:
+            raise ValueError(init_except_message)
         
         pattern = pattern if isinstance(pattern, Pattern) else Pattern.from_string(pattern)
         
         self.columns = columns
-        self.automata = automata
+        self.rule = rule
         self.description = pattern.value
+
         self.version = VERSION
         self.pattern = pattern
+
         self.sums = None
         self.result = None
+
+        # Generate the rule set that dictates generation behavior
+        rule_set = {}
+        flat_rule_set = []
+        output_rule_set = [int(x) for x in binary_repr(rule, width=8)]
+
+        for i in range(8):
+            input_rule_set = tuple([int(x) for x in binary_repr(7-i, 3)])
+            rule_set[input_rule_set] = output_rule_set[i]
+            flat_rule_set.extend(input_rule_set)
+            flat_rule_set.append(output_rule_set[i])
+
+        self.rule = rule
+        self.rule_set = rule_set
+        self.flat_rule_set = array(flat_rule_set, uint8)
 
         if generate:
             self.generate(pattern, force_python)
 
     def __repr__(self) -> str:
-        return f'Canvas: Rule {self.automata.rule} - {self.description}'
-
+        return f'Canvas: Rule {self.rule} - {self.description}'
+    
     def generate(self, pattern: Pattern = Pattern.STANDARD,
                  force_python: bool = False):
         """
@@ -89,7 +106,7 @@ class BaseCanvas:
         central_line = 0 if not boost else pattern_map[pattern]
 
         if RUST_AVAILABLE and not force_python:
-            canvas, sums = generate_canvas(canvas[0], rows, self.columns, self.automata.flat_pattern, boost, central_line)
+            canvas, sums = generate_canvas(canvas[0], rows, self.columns, self.flat_rule_set, boost, central_line)
             self.sums = np_insert(sums, 0, row_sum)
         else:
             canvas = self.python_generate(canvas, rows, boost, central_line)
@@ -111,7 +128,7 @@ class BaseCanvas:
             self.sums.append(0)
             for j in arange(start, stop):
                 local_pattern = tuple(canvas[i, j:j+3])
-                output_pattern = self.automata.pattern.get(local_pattern, 0)
+                output_pattern = self.rule_set.get(local_pattern, 0)
                 canvas[i+1, j+1] = output_pattern
                 self.sums[i+1] += output_pattern
 
