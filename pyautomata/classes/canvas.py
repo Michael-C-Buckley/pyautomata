@@ -11,9 +11,9 @@ class Canvas(BaseCanvas):
     Intermediate class for methods that the Base class cannot to prevent
     circular import and dependency errors
     """
-    def __init__(self, rule: int, columns: int = 100, pattern: Pattern = Pattern.STANDARD,
+    def __init__(self, rule: int, rows: int = 100, pattern: Pattern = Pattern.STANDARD,
                  force_python: bool = False, generate: bool = True) -> None:
-        super().__init__(rule, pattern, columns, force_python, generate)
+        super().__init__(rule, rows, pattern, force_python, generate)
         
         if generate:
             self._stats: StatsContainer = calculate_stats(self)

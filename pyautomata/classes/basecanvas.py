@@ -19,10 +19,8 @@ class BaseCanvas:
     """
     Canvas base class containing fundamental attributes
     """
-    def __init__(self, rule: int, pattern: Pattern = Pattern.STANDARD,
-                 rows: int = 100, force_python: bool = False,
-                 generate: bool = True) -> None:
-        
+    def __init__(self, rule: int, rows: int = 100, pattern: Pattern = Pattern.STANDARD,
+                 force_python: bool = False, generate: bool = True) -> None:
         init_except_message = 'Rule must be an integer between 1 and 256'
         if type(rule) != int:
             raise ValueError(init_except_message)
@@ -85,9 +83,6 @@ class BaseCanvas:
 
         row_sum = 0
 
-        # Interim value
-        self.sums = [row_sum]
-
         # Pattern logic
         if pattern in pattern_map:
             canvas[0, pattern_map[pattern]] = 1
@@ -100,6 +95,8 @@ class BaseCanvas:
                 canvas[0][i] = value
                 row_sum += value
 
+        self.sums = [row_sum]
+
         boost = True if pattern in pattern_map else False
         central_line = 0 if not boost else pattern_map[pattern]
 
@@ -111,6 +108,21 @@ class BaseCanvas:
 
         self.result = canvas
 
+    def python_generate_row(self, input_row: ndarray, start: int, stop: int) -> tuple[ndarray, int]:
+        """
+        Method to generate the next row given an input row
+        """
+        new_row = zeros((self.columns,), uint8)
+        row_sum = 0
+        
+        for i in arange(start, stop):
+            local_pattern = tuple(input_row[i:i+3])
+            output_pattern = self.rule_set.get(local_pattern, 0)
+            new_row[i+1] = output_pattern
+            row_sum += output_pattern
+
+        return new_row, row_sum
+
 
     def python_generate(self, canvas: ndarray, rows: int, boost: bool = False, central_line: int = 0):
         """
@@ -118,18 +130,14 @@ class BaseCanvas:
         the Rust API
         """
         for i in arange(0, rows-1):
+            start = (central_line - i - 2) if boost else 0
+            stop = min((central_line + i + 2, self.columns-1)) if boost else self.columns-1
 
-            # Boost masking area determination
-            start = (central_line - i - 1) if boost else 0
-            stop = min((central_line + i + 1, self.columns-1)) if boost else self.columns-1
-
-            self.sums.append(0)
-            for j in arange(start, stop):
-                local_pattern = tuple(canvas[i, j:j+3])
-                output_pattern = self.rule_set.get(local_pattern, 0)
-                canvas[i+1, j+1] = output_pattern
-                self.sums[i+1] += output_pattern
+            new_row, row_sum = self.python_generate_row(canvas[i], start, stop)
+            self.sums.append(row_sum)
+            canvas[i+1] = new_row
 
         self.sums = array(self.sums)
 
         return canvas
+    
