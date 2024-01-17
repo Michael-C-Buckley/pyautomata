@@ -26,8 +26,109 @@ fn process_rules(rules: &[u8]) -> HashMap<(u8 , u8, u8), u8> {
     rules_map
 }
 
+fn generate_row(rules_map: &HashMap<(u8 , u8, u8), u8>, input_row: &[u8], output_row: &mut [u8],
+    start: usize, stop: usize) -> u32 {
+    // Function to generate a single row given proper inputs
+    let mut row_sum: u32 = 0;
+
+    for i in start..stop {
+        let left = if i == 0 { 0 } else { input_row[i - 1] };
+        let center = input_row[i];
+        let right = if i == input_row.len() - 1 { 0 } else { input_row[i + 1] };
+
+        if let Some(&new_value) = rules_map.get(&(left as u8, center as u8, right as u8)) {
+            output_row[i] = new_value as u8;
+            row_sum += new_value as u32;
+        }
+    }
+    row_sum
+}
+
 #[no_mangle]
 pub extern "C" fn generate_canvas(
+    initial_row: *const u8, 
+    rows: usize, 
+    columns: usize, 
+    rules: *const u8,
+    rules_length: usize,
+    boost: bool,
+    central_line: usize,
+    whole: bool
+) -> CanvasPointers {
+    // Determines whether the functions should be broken up
+    if whole {
+        generate_canvas_whole(initial_row, rows, columns, rules, rules_length, boost, central_line)
+    }
+    else {
+        generate_canvas_by_row(initial_row, rows, columns, rules, rules_length, boost, central_line)
+    }
+}
+
+fn generate_canvas_by_row(
+    initial_row: *const u8, 
+    rows: usize, 
+    columns: usize, 
+    rules: *const u8,
+    rules_length: usize,
+    boost: bool,
+    central_line: usize
+) -> CanvasPointers {
+
+    let mut working_canvas = Vec::with_capacity(rows);
+    let mut sums = vec![0; rows];
+
+    let (initial_row_slice, rules_slice) = unsafe {
+        (
+            slice::from_raw_parts(initial_row, columns),
+            slice::from_raw_parts(rules, rules_length),
+        )
+    };
+
+    let rules_map = process_rules(rules_slice);
+
+    let mut first_row_sum: u32 = 0;
+    for &value in initial_row_slice.iter() {
+        assert!(value == 0 || value == 1, "Initial row must contain only 0s and 1s");
+        first_row_sum = first_row_sum + value as u32;
+    }
+    working_canvas.push(initial_row_slice.to_vec());
+    sums[0] = first_row_sum;
+
+    for row in 0..rows-1 {
+        let mut output_row = vec![0u8; columns];
+
+        let mut start: usize = 0;
+        let mut stop: usize = columns;
+
+        // Boosting masks untouched whitespace when appropriate
+        if boost {
+            start = central_line.saturating_sub(row + 2);
+            stop = std::cmp::min(central_line + row + 2, columns);
+        }
+
+        let input_row = &working_canvas[row];
+
+        let row_sum = generate_row(&rules_map, &input_row, &mut output_row, start, stop);
+
+        working_canvas.push(output_row.to_vec());
+        sums[row] = row_sum;
+    }
+
+    let mut canvas: Vec<u8> = working_canvas.into_iter().flat_map(|row| row.into_iter()).collect();
+
+    // Capture the pointers and forget them to prevent automatic memory management
+    let canvas_ptr = canvas.as_mut_ptr();
+    let sums_ptr = sums.as_mut_ptr();
+    std::mem::forget(canvas);
+    std::mem::forget(sums);
+
+    CanvasPointers {
+        canvas_pointer: canvas_ptr,
+        sums_pointer: sums_ptr
+    }
+}
+
+fn generate_canvas_whole(
     initial_row: *const u8, 
     rows: usize, 
     columns: usize, 

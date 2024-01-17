@@ -62,7 +62,8 @@ lib.generate_canvas.argtypes = [
     POINTER(c_uint8),  # rules
     c_size_t,          # rules_length
     c_bool,            # boost
-    c_size_t           # central line
+    c_size_t,          # central line
+    c_bool             # whole
 ]
 
 lib.generate_canvas.restype = CanvasPointers
@@ -114,8 +115,8 @@ def free_memory(pointer, dtype, num_elements):
     lib.free_memory(pointer_as_u8, size_in_bytes)
 
 def generate_canvas(initial_row: ndarray, rows: int, columns: int,
-                    rules: dict[tuple[int], int,],
-                    boost: bool = False, central_line: int = 0):
+                    rules: dict[tuple[int], int,], boost: bool = False,
+                    central_line: int = 0, whole: bool = True):
     """
     Python API for Rust FFI to generate the canvas
     """
@@ -124,7 +125,7 @@ def generate_canvas(initial_row: ndarray, rows: int, columns: int,
     rules_pointer = rules.ctypes.data_as(POINTER(c_uint8))
 
     # Perform the calculations in Rust and get the pointer to the results
-    pointers: CanvasPointers = lib.generate_canvas(initial_row_pointer, rows, columns, rules_pointer, len(rules), boost, central_line)
+    pointers: CanvasPointers = lib.generate_canvas(initial_row_pointer, rows, columns, rules_pointer, len(rules), boost, central_line, whole)
     canvas_result = ctypeslib.as_array(pointers.canvas_pointer, shape=(rows, columns))
     sums_result = ctypeslib.as_array(pointers.sums_pointer, shape = (rows,))
     
