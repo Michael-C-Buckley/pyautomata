@@ -20,7 +20,13 @@ class ClassesTestCase(TestCase):
         Method to generate and return test canvases for evaulation
         """
         result = Canvas(30, 5, input_pattern, force_python).result
-        return array_equal(result, matching_pattern)
+        if not array_equal(result, matching_pattern):
+            if result.shape != matching_pattern.shape:
+                return False
+            for a, b in zip(result.flatten(), matching_pattern.flatten()):
+                if a != b:
+                    return False
+        return True
 
     def test_invalid_cases(self):
         """

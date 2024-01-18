@@ -116,8 +116,10 @@ class BaseCanvas:
         row_sum = 0
         
         for i in arange(start, stop):
-            local_pattern = tuple(input_row[i:i+3])
-            output_pattern = self.rule_set.get(local_pattern, 0)
+            left = 0 if i <= 0 else input_row[i]
+            center = input_row[i+1]
+            right = 0 if i >= len(input_row)-2 else input_row[i+2]
+            output_pattern = self.rule_set[(left, center, right)]
             new_row[i+1] = output_pattern
             row_sum += output_pattern
 
