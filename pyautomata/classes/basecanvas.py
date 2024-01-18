@@ -116,7 +116,7 @@ class BaseCanvas:
         row_sum = 0
         
         for i in arange(start, stop):
-            left = 0 if i <= 0 else input_row[i]
+            left = 0 if i < 0 else input_row[i]
             center = input_row[i+1]
             right = 0 if i >= len(input_row)-2 else input_row[i+2]
             output_pattern = self.rule_set[(left, center, right)]
