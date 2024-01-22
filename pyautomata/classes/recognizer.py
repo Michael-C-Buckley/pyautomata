@@ -3,13 +3,17 @@
 # Third-Party Modules
 from numpy import ndarray
 
+# Local Modules
+from pyautomata.handlers.rust import RUST_AVAILABLE, recognize_canvas
+
 class Recognizer:
     """
     Recognizer is the term to given to the pattern analyzer.  It iterates a canvas
     and returns the number of times repeating segments come up.  It also creates
     a new `rule set` for the new larger pattern size.
     """
-    def __init__(self, rule: int, canvas_array: ndarray, pattern_length: int = 5) -> None:
+    def __init__(self, rule: int, canvas_array: ndarray, pattern_length: int = 5,
+                 force_python: bool = False) -> None:
 
         init_except_message = 'Rule must be an integer between 1 and 256'
         if type(rule) != int:
@@ -22,34 +26,41 @@ class Recognizer:
         self.input_rows = len(canvas_array)
         self.pattern_length = pattern_length
 
-        pattern_rules, pattern_segments, segment_count = self.python_recognize_canvas(canvas_array, pattern_length)
+        self.recognize_canvas(canvas_array, pattern_length, force_python)
 
-        self.pattern_segments = pattern_segments
-        self.pattern_rules = pattern_rules
-        self.segment_count = segment_count
+    def recognize_canvas(self, canvas_array: ndarray, pattern_length: int = 5,
+                         force_python: bool = False):
+        """"""
 
-    @staticmethod
-    def python_recognize_canvas(canvas_array: ndarray, pattern_length: int = 5):
+        if RUST_AVAILABLE and not force_python:
+            rules_dict, segment_dict, segments = recognize_canvas(canvas_array, len(canvas_array), len(canvas_array[0]), pattern_length)
+            self.pattern_rules = rules_dict
+            self.pattern_segments = segment_dict
+            self.segment_count = segments
+        else:
+            self.python_recognize_canvas(canvas_array, pattern_length)
+
+    def python_recognize_canvas(self, canvas_array: ndarray, pattern_length: int = 5):
         """
         'Recognition' is a function that searches and return longer pattern sets
         """
-        pattern_segments: dict[tuple[int], int] = {}
-        pattern_rules: dict[tuple[int], tuple[int]] = {}
-        segment_count = 0
+        self.pattern_segments: dict[tuple[int], int] = {}
+        self.pattern_rules: dict[tuple[int], tuple[int]] = {}
+        self.segment_count = 0
         for i in range(1, len(canvas_array)):
             row = canvas_array[i]
             for j in range(1, len(row)):
                 if j + pattern_length > len(row):
                     continue
-                segment = tuple(row[j:j+pattern_length+1])
+                segment = tuple(row[j:j+pattern_length])
 
-                segment_count += 1
+                self.segment_count += 1
 
-                if segment in pattern_segments:
-                    pattern_segments[segment] += 1
+                if segment in self.pattern_segments:
+                    self.pattern_segments[segment] += 1
                 else:
                     parent_pattern = tuple(canvas_array[i-1][j-1:j+len(segment)+1])
-                    pattern_segments[segment] = 1
-                    pattern_rules[parent_pattern] = segment
-
-        return pattern_rules, pattern_segments, segment_count
+                    if len(parent_pattern) != pattern_length + 2:
+                        continue
+                    self.pattern_segments[segment] = 1
+                    self.pattern_rules[parent_pattern] = segment

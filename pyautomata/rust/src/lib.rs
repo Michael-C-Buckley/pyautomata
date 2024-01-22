@@ -1,12 +1,23 @@
 // PyAutomata Rust Support Library
 
+use serde_json;
 use std::collections::HashMap;
 use std::slice;
+// use serde::{Serialize, Deserialize};
+use std::ffi::CString;
+use std::os::raw::c_char;
 
 #[repr(C)]
 pub struct CanvasPointers {
     canvas_pointer: *mut u8,
     sums_pointer: *mut u32,
+}
+
+#[repr(C)]
+pub struct RecognitionOutput {
+    pattern_rules_pointer: *const c_char,
+    pattern_segments_pointer: *const c_char,
+    segment_count: usize,
 }
 
 fn process_rules(rules: &[u8]) -> HashMap<(u8 , u8, u8), u8> {
@@ -24,6 +35,14 @@ fn process_rules(rules: &[u8]) -> HashMap<(u8 , u8, u8), u8> {
     }
     
     rules_map
+}
+
+fn prepare_cstring_pointer(input: String) -> *const c_char {
+    let c_string = CString::new(input).unwrap();
+    let string_pointer = c_string.as_ptr();
+    std::mem::forget(c_string);
+
+    string_pointer
 }
 
 fn generate_row(rules_map: &HashMap<(u8 , u8, u8), u8>, input_row: &[u8], output_row: &mut [u8],
@@ -239,9 +258,68 @@ pub extern "C" fn calculate_stats(canvas_sums: *const u32, sums_length: usize) -
 }
 
 #[no_mangle]
+pub extern "C" fn recognize_canvas(canvas_pointer: *const u8, rows: usize,
+    columns: usize, pattern_length: usize) -> RecognitionOutput {
+
+    assert!(!canvas_pointer.is_null(), "Null pointer passed");
+
+    let canvas_slice = unsafe {
+            slice::from_raw_parts(canvas_pointer, rows * columns)
+    };
+
+    let mut pattern_segments: HashMap<String, usize> = HashMap::new();
+    let mut pattern_rules: HashMap<String, String> = HashMap::new();
+    let mut segment_count: usize = 0;
+
+    for row in 1..rows-1 {
+        for column in 1..columns-1 {
+            if column + pattern_length > columns {
+                continue;
+            }
+            let segment = &canvas_slice[(row * column)..(row * column) + pattern_length].to_vec();
+            let segment_key = serde_json::to_string(&segment).unwrap();
+
+            segment_count += 1;
+
+            if pattern_segments.contains_key(&segment_key) {
+                *pattern_segments.get_mut(&segment_key).unwrap() += 1;
+            } else {
+                // define the parent's bounds
+                let base = (row - 1) * columns;
+                let p_start = base + column - 1;
+                let p_end = base + column + pattern_length + 1;
+                let parent_pattern = &canvas_slice[p_start..p_end].to_vec();
+                let parent_string = serde_json::to_string(&parent_pattern).unwrap();
+
+                pattern_segments.insert(segment_key.clone(), 1);
+                pattern_rules.insert(parent_string, segment_key);
+            }
+        }
+    }
+
+    // Prepare the hashmaps for transport
+    let pattern_rules_string: String = serde_json::to_string(&pattern_rules).unwrap();
+    let pattern_segments_string: String = serde_json::to_string(&pattern_segments).unwrap();
+
+    RecognitionOutput {
+        pattern_rules_pointer: prepare_cstring_pointer(pattern_rules_string),
+        pattern_segments_pointer: prepare_cstring_pointer(pattern_segments_string),
+        segment_count: segment_count,
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn free_memory(ptr: *mut u8, size_in_bytes: usize) {
     // Function to release the memory after it has been transferred into Python-owned memory
     if !ptr.is_null() {
         let _ = unsafe { Vec::from_raw_parts(ptr, size_in_bytes, size_in_bytes) };
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn free_string(ptr: *mut c_char) {
+    // Function to release the memory of a string pointer after transferring to Python-owned memory
+    if !ptr.is_null() {
+        let _ = unsafe { CString::from_raw(ptr) };
     }
 }

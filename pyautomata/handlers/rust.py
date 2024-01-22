@@ -2,9 +2,10 @@
 
 # Python Modules
 from ctypes import (
-    POINTER, sizeof, cast, CDLL, Structure,
+    POINTER, sizeof, cast, string_at, CDLL, Structure, c_char,
     c_bool, c_size_t, c_uint8, c_uint32, c_float
 )
+from json import loads
 from os import path
 
 # Third-Party Modules
@@ -42,16 +43,25 @@ except (OSError, ImportError) as e:
 
 class CanvasPointers(Structure):
     _fields_ = [
-        ("canvas_pointer", POINTER(c_uint8)),
-        ("sums_pointer", POINTER(c_uint32))
+        ('canvas_pointer', POINTER(c_uint8)),
+        ('sums_pointer', POINTER(c_uint32))
     ]
 
 class StatsStructure(Structure):
     _fields_ = [
-        ("standard_deviation", c_float),
-        ("mean_increase", c_float),
-        ("marginal_sum_increase_ptr", POINTER(c_float)),
-        ("sum_rate_length", c_size_t)
+        ('standard_deviation', c_float),
+        ('mean_increase', c_float),
+        ('marginal_sum_increase_ptr', POINTER(c_float)),
+        ('sum_rate_length', c_size_t)
+    ]
+
+class RecognitionOutput(Structure):
+    _fields_ = [
+        ('pattern_rules_pointer', POINTER(c_char)),
+        ('pattern_segments_pointer', POINTER(c_char)),
+        ('segment_count', c_size_t),
+        ('pattern_rules_length', c_size_t),
+        ('pattern_segments_legnth', c_size_t)
     ]
 
 # Generate Canvas
@@ -62,7 +72,7 @@ lib.generate_canvas.argtypes = [
     POINTER(c_uint8),  # rules
     c_size_t,          # rules_length
     c_bool,            # boost
-    c_size_t,          # central line
+    c_size_t,          # central_line
     c_bool             # whole
 ]
 
@@ -76,11 +86,41 @@ lib.calculate_stats.argtypes = [
 
 lib.calculate_stats.restype = StatsStructure
 
+# Recognize Canvas
+lib.recognize_canvas.argtypes = [
+    POINTER(c_uint8),  # canvas_pointer
+    c_size_t,          # rows
+    c_size_t,          # columns
+    c_size_t,          # pattern_length
+]
+
+lib.recognize_canvas.restype = RecognitionOutput
+
 # Free Memory
 lib.free_memory.argtypes = [
     POINTER(c_uint8),  # pointer
     c_size_t           # size
 ]
+
+# Free String
+lib.free_string.argtypes = [
+    POINTER(c_char)    # pointer
+]
+
+def free_memory(pointer, dtype, num_elements):
+    """
+    Free memory allocated in Rust for arrays of different types.
+    """
+    size_in_bytes = sizeof(dtype) * num_elements
+    pointer_as_u8 = cast(pointer, POINTER(c_uint8))
+    lib.free_memory(pointer_as_u8, size_in_bytes)
+
+def free_string(pointer):
+    """
+    Free memory allocated to Rust/C-strings
+    """
+    lib.free_string(pointer)
+
 
 def compute_stats(canvas_sums: ndarray) -> tuple[ndarray[float32], float, float]:
     """
@@ -105,14 +145,6 @@ def compute_stats(canvas_sums: ndarray) -> tuple[ndarray[float32], float, float]
     mean_increase = stats_results.mean_increase
 
     return marginal_sum_increase, mean_increase, standard_deviation
-
-def free_memory(pointer, dtype, num_elements):
-    """
-    Free memory allocated in Rust for arrays of different types.
-    """
-    size_in_bytes = sizeof(dtype) * num_elements
-    pointer_as_u8 = cast(pointer, POINTER(c_uint8))
-    lib.free_memory(pointer_as_u8, size_in_bytes)
 
 def generate_canvas(initial_row: ndarray, rows: int, columns: int,
                     rules: dict[tuple[int], int,], boost: bool = False,
@@ -141,3 +173,33 @@ def generate_canvas(initial_row: ndarray, rows: int, columns: int,
 
     return canvas, sums_array
 
+def recognize_canvas(canvas_array: ndarray, rows: int, columns: int, pattern_length: int):
+    """
+    Python API for Rust FFI for running recognition
+    """
+    # Prepare outbound information
+    canvas_pointer = canvas_array.ctypes.data_as(POINTER(c_uint8))
+
+    # Execute
+    results: RecognitionOutput = lib.recognize_canvas(canvas_pointer, rows, columns, pattern_length)
+    rules_json = loads(string_at(results.pattern_rules_pointer).decode('utf-8'))
+    segments_json = loads(string_at(results.pattern_segments_pointer).decode('utf-8'))
+
+    # Convert to Python Dictionaries
+    rules_dict = {}
+    segments_dict = {}
+
+    for k, v in rules_json.items():
+        new_key = tuple(loads(k))
+        new_value = tuple(loads(v))
+        rules_dict[new_key] = new_value
+
+    for k, v in segments_json.items():
+        new_key = tuple(loads(k))
+        segments_dict[new_key] = v
+
+    # Free memory
+    free_string(results.pattern_rules_pointer)
+    free_string(results.pattern_segments_pointer)
+
+    return rules_dict, segments_dict, results.segment_count

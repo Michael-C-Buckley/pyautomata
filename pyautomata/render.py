@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 # Third-Party Modules
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-from numpy import array, ndarray, float32
+from numpy import array, arange, ndarray, float32, random
 
 # Local Modules
 from pyautomata.stats import StatsContainer
@@ -25,6 +25,43 @@ def prepare_plot(x_label: str, y_label: str, title: str, grid: bool = True,
     if legend:
         plt.legend()
     plt.show()
+
+def prepare_scatter_plot(x: list, y: list):
+    """
+    Wrapper function for de-cluttering scatter plot creation
+    """
+    plt.style.use('_mpl-gallery')
+
+    # size and color:
+    random.seed(3)
+    sizes = random.uniform(15, 80, len(x))
+    colors = random.uniform(15, 80, len(x))
+
+    # plot
+    fig, ax = plt.subplots()
+
+    ax.scatter(x, y, s=sizes, c=colors, vmin=0, vmax=100)
+
+    ax.set(xlim=(0, 50), xticks=arange(1, 8),
+        ylim=(0, 50), yticks=arange(1, 8))
+
+    plt.show()
+
+def prepare_bar_chart(inputs: list):
+    """
+    Function for creating a bar chart
+    """
+    fig, ax = plt.subplots()
+
+    x = 0.5 + arange(len(inputs))
+
+    ax.bar(x, inputs, width=1, edgecolor="white", linewidth=0.7)
+
+    ax.set(xlim=(0, 10), xticks=arange(1, len(inputs)),
+           ylim=(0, 8), yticks=arange(1, len(inputs)))
+    
+    plt.show()
+
 
 def draw_plot(canvas: 'Canvas', max_depth: int = None, filename: str = None):
     """
