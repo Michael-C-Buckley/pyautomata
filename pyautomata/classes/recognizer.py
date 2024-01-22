@@ -47,20 +47,16 @@ class Recognizer:
         self.pattern_segments: dict[tuple[int], int] = {}
         self.pattern_rules: dict[tuple[int], tuple[int]] = {}
         self.segment_count = 0
-        for i in range(1, len(canvas_array)):
-            row = canvas_array[i]
-            for j in range(1, len(row)):
-                if j + pattern_length > len(row):
-                    continue
-                segment = tuple(row[j:j+pattern_length])
 
+        for i in range(1, len(canvas_array)):
+            for j in range(1, len(canvas_array[i])-pattern_length):
+
+                segment = tuple(canvas_array[i][j:j+pattern_length])
+                parent_pattern = tuple(canvas_array[i-1][j-1:j+len(segment)+1])
                 self.segment_count += 1
+                self.pattern_rules[parent_pattern] = segment
 
                 if segment in self.pattern_segments:
                     self.pattern_segments[segment] += 1
                 else:
-                    parent_pattern = tuple(canvas_array[i-1][j-1:j+len(segment)+1])
-                    if len(parent_pattern) != pattern_length + 2:
-                        continue
                     self.pattern_segments[segment] = 1
-                    self.pattern_rules[parent_pattern] = segment
