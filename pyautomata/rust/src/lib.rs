@@ -271,29 +271,31 @@ pub extern "C" fn recognize_canvas(canvas_pointer: *const u8, rows: usize,
     let mut pattern_rules: HashMap<String, String> = HashMap::new();
     let mut segment_count: usize = 0;
 
-    for row in 1..rows-1 {
-        for column in 1..columns-1 {
+    for row in 1..rows {
+        for column in 1..columns-pattern_length {
             if column + pattern_length > columns {
                 continue;
             }
-            let segment = &canvas_slice[(row * column)..(row * column) + pattern_length].to_vec();
+            // Identify the segment
+            let segment_start = row * columns + column;
+            let segment_end = segment_start + pattern_length;
+            let segment = &canvas_slice[segment_start..segment_end];
             let segment_key = serde_json::to_string(&segment).unwrap();
 
-            segment_count += 1;
+            // Identify the parent that created it
+            let parent_start = (row - 1) * columns + column - 1;
+            let parent_end = parent_start + pattern_length + 2;
+            let parent_pattern = &canvas_slice[parent_start..parent_end];
+            let parent_string = serde_json::to_string(&parent_pattern).unwrap();
 
             if pattern_segments.contains_key(&segment_key) {
                 *pattern_segments.get_mut(&segment_key).unwrap() += 1;
             } else {
-                // define the parent's bounds
-                let base = (row - 1) * columns;
-                let p_start = base + column - 1;
-                let p_end = base + column + pattern_length + 1;
-                let parent_pattern = &canvas_slice[p_start..p_end].to_vec();
-                let parent_string = serde_json::to_string(&parent_pattern).unwrap();
-
                 pattern_segments.insert(segment_key.clone(), 1);
-                pattern_rules.insert(parent_string, segment_key);
             }
+
+            pattern_rules.insert(parent_string, segment_key);
+            segment_count += 1;
         }
     }
 

@@ -2,7 +2,6 @@
 
 # Python Modules
 from unittest import TestCase, main
-from copy import deepcopy
 
 # Third-Party Modules
 
