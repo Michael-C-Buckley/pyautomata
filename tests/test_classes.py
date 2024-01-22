@@ -7,7 +7,7 @@ from unittest import TestCase, main
 from numpy import array_equal
 
 # Local Modules
-from tests.test_common import PATTERN_TEST_MAP
+from tests.common import PATTERN_TEST_MAP
 from pyautomata.classes import Canvas, Pattern
 
 class ClassesTestCase(TestCase):
@@ -16,7 +16,7 @@ class ClassesTestCase(TestCase):
                            matching_pattern: str|Pattern = None,
                            force_python: bool = False) -> bool:
         """
-        Method to generate and return test canvases for evaulation
+        Method to generate and return test canvases for evaluation
         """
         if matching_pattern is None:
             matching_pattern = PATTERN_TEST_MAP.get(input_pattern)

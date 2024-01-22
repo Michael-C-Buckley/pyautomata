@@ -7,7 +7,7 @@ from unittest import TestCase, main
 
 # Local Modules
 from pyautomata import Recognizer
-from tests.test_common import RULE_30_STANDARD
+from tests.common import RULE_30_STANDARD
 
 EXPECTED_PATTERNS = {
     (0, 0, 0, 0, 0, 1, 0): (0, 0, 0, 1, 1),
