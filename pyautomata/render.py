@@ -63,17 +63,20 @@ def prepare_bar_chart(inputs: list):
     plt.show()
 
 
-def draw_plot(canvas: 'Canvas', max_depth: int = None, filename: str = None):
+def draw_plot(canvas: 'Canvas', max_depth: int = None, filename: str = None,
+              title: str = None):
     """
     Draw a canvas plot
     """
     if max_depth is None:
         max_depth = canvas.rows+1
 
+    if title is None:
+        title = f'Rule {canvas.rule}: {canvas.description}'
+
     inverted_cmap = LinearSegmentedColormap.from_list('inverted_gray', ['white', 'black'])
 
     plt.imshow(canvas.result[:, 1:max_depth*2], cmap=inverted_cmap)
-    title = f'Rule {canvas.rule}: {canvas.description}'
     plt.title(title)
     
     if plt.isinteractive():

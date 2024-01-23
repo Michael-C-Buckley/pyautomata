@@ -26,14 +26,15 @@ class Canvas(BaseCanvas):
             self._stats: StatsContainer = calculate_stats(self)
         return self._stats
 
-    def render(self, max_depth: int = None, filename: str = None):
+    def render(self, max_depth: int = None, filename: str = None,
+               title: str = None) -> None:
         """
         Draws a visual representation of the canvas
         """
         if max_depth is not None:
             if max_depth < self.columns:
                 raise ValueError(f'Max depth cannot exceed canvas columns ({max_depth} v. {self.columns})')
-        draw_plot(self, max_depth, filename)
+        draw_plot(self, max_depth, filename, title)
 
     def draw_sums_deviations(self, start: int = None, end: int = None):
         """
