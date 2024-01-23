@@ -183,7 +183,7 @@ def recognize_canvas(shape: tuple[int, int], canvas_array: ndarray, pattern_leng
     rows, columns = shape
 
     # Execute
-    results: RecognitionOutput = lib.recognize_canvas(canvas_pointer, rows, columns, pattern_length)
+    results: RecognitionOutput = lib.recognize_canvas(canvas_pointer, rows, columns, pattern_length, boost, central_line)
     rules_json = loads(string_at(results.pattern_rules_pointer).decode('utf-8'))
     segments_json = loads(string_at(results.pattern_segments_pointer).decode('utf-8'))
 

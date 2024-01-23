@@ -180,14 +180,9 @@ fn generate_canvas_whole(
     for row in 0..rows-1 {
         let mut row_sum: u32 = 0;
 
-        let mut start: usize = 0;
-        let mut stop: usize = columns;
-
         // Boosting masks untouched whitespace when appropriate
-        if boost {
-            start = central_line.saturating_sub(row + 2);
-            stop = std::cmp::min(central_line + row + 2, columns);
-        }
+        let start = if boost { central_line.saturating_sub(row + 2) } else { 0 };
+        let stop = if boost { std::cmp::min(central_line + row + 2, columns) } else { columns };
 
         for col in start..stop {
             let left = if col == 0 { 0 } else { canvas[row * columns + col - 1] };
@@ -259,7 +254,7 @@ pub extern "C" fn calculate_stats(canvas_sums: *const u32, sums_length: usize) -
 
 #[no_mangle]
 pub extern "C" fn recognize_canvas(canvas_pointer: *const u8, rows: usize,
-    columns: usize, pattern_length: usize) -> RecognitionOutput {
+    columns: usize, pattern_length: usize, boost: bool, central_line: usize) -> RecognitionOutput {
 
     assert!(!canvas_pointer.is_null(), "Null pointer passed");
 
@@ -272,7 +267,15 @@ pub extern "C" fn recognize_canvas(canvas_pointer: *const u8, rows: usize,
     let mut segment_count: usize = 0;
 
     for row in 1..rows {
-        for column in 1..columns-pattern_length {
+        // Boost masks known whitespace to speed up calculation
+        let start = if boost { central_line - row - 2 } else { 1 };
+        let stop = if boost {
+            std::cmp::min(central_line + row + 2, columns - pattern_length)
+        } else {
+            columns - pattern_length
+        };
+
+        for column in start..stop {
             if column + pattern_length > columns {
                 continue;
             }
