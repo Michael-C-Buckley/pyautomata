@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 # Third-Party Modules
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-from numpy import array, arange, ndarray, float32, random
+from numpy import arange, random
 
 # Local Modules
 from pyautomata.stats import StatsContainer
@@ -49,7 +49,7 @@ def prepare_scatter_plot(x: list, y: list):
 
 def prepare_bar_chart(inputs: list):
     """
-    Function for creating a bar chart
+    Wrapper function for de-cluttering bar chart creation
     """
     fig, ax = plt.subplots()
 
