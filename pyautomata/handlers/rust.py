@@ -173,12 +173,14 @@ def generate_canvas(initial_row: ndarray, rows: int, columns: int,
 
     return canvas, sums_array
 
-def recognize_canvas(canvas_array: ndarray, rows: int, columns: int, pattern_length: int):
+def recognize_canvas(shape: tuple[int, int], canvas_array: ndarray, pattern_length: int,
+                     boost: bool = False, central_line: int = 0) -> tuple[dict, dict, int]:
     """
     Python API for Rust FFI for running recognition
     """
     # Prepare outbound information
     canvas_pointer = canvas_array.ctypes.data_as(POINTER(c_uint8))
+    rows, columns = shape
 
     # Execute
     results: RecognitionOutput = lib.recognize_canvas(canvas_pointer, rows, columns, pattern_length)

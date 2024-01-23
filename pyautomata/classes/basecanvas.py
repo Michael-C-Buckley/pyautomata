@@ -11,7 +11,7 @@ from numpy import (
 )
 
 # Local Modules
-from pyautomata.classes.general import Pattern
+from pyautomata.classes.general import Pattern, CENTRAL_LINE_MAP
 from pyautomata.handlers.rust import generate_canvas, RUST_AVAILABLE
 from pyautomata.version import VERSION
 
@@ -71,11 +71,6 @@ class BaseCanvas:
         canvas = zeros([self.rows, self.columns], uint8)
         ascontiguousarray(canvas)
 
-        pattern_map = {
-            Pattern.LEFT: 0,
-            Pattern.RIGHT: self.rows-1,
-            Pattern.STANDARD: self.columns//2,
-        }
         pattern_iteration_map = {
             Pattern.RANDOM: lambda _: randint(0, 1),
             Pattern.ALTERNATING: lambda i: 0 if i % 2 == 0 else 1,
@@ -84,8 +79,8 @@ class BaseCanvas:
         row_sum = 0
 
         # Pattern logic
-        if pattern in pattern_map:
-            canvas[0, pattern_map[pattern]] = 1
+        if pattern in CENTRAL_LINE_MAP:
+            canvas[0, CENTRAL_LINE_MAP[pattern](self.columns)] = 1
             row_sum = 1
 
         if pattern in pattern_iteration_map:
@@ -97,8 +92,8 @@ class BaseCanvas:
 
         self.sums = [row_sum]
 
-        boost = True if pattern in pattern_map else False
-        central_line = 0 if not boost else pattern_map[pattern]
+        boost = True if pattern in CENTRAL_LINE_MAP else False
+        central_line = 0 if not boost else CENTRAL_LINE_MAP[pattern](self.columns)
 
         if RUST_AVAILABLE and not force_python:
             canvas, sums = generate_canvas(canvas[0], self.rows, self.columns, self.flat_rule_set, boost, central_line)

@@ -24,3 +24,10 @@ class Pattern(Enum):
             return pattern_match
         else:
             raise ValueError(f'No Pattern with the value: {input_string}')
+
+
+CENTRAL_LINE_MAP = {
+    Pattern.LEFT: lambda _: 0,
+    Pattern.RIGHT: lambda i: i-1,
+    Pattern.STANDARD: lambda i: i//2,
+}
