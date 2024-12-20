@@ -42,18 +42,16 @@ class BaseCanvas:
         self.result = None
 
         # Generate the rule set that dictates generation behavior
-        rule_set = {}
         flat_rule_set = []
         output_rule_set = [int(x) for x in binary_repr(rule, width=8)]
 
         for i in range(8):
             input_rule_set = tuple([int(x) for x in binary_repr(7-i, 3)])
             rule_set[input_rule_set] = output_rule_set[i]
-            flat_rule_set.extend(input_rule_set)
-            flat_rule_set.append(output_rule_set[i])
+            flat_rule_set.extend([input_rule_set, output_rule_set[i]])
 
         self.rule = rule
-        self.rule_set = rule_set
+        self.rule_set = {}
         self.flat_rule_set = array(flat_rule_set, uint8)
 
         if generate:
