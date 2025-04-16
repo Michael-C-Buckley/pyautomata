@@ -22,7 +22,7 @@ pub struct RecognitionOutput {
 
 fn process_rules(rules: &[u8]) -> HashMap<(u8 , u8, u8), u8> {
     // Convert and create a hash map from the rules
-    let mut rules_map = HashMap::new();
+    let mut rules_map = HashMap::with_capacity(rules.len() / 4);
 
     // Rules are 4 members, 3 inputs and 1 output
     for chunk in rules.chunks_exact(4) {
@@ -33,7 +33,7 @@ fn process_rules(rules: &[u8]) -> HashMap<(u8 , u8, u8), u8> {
         let value = chunk[3];
         rules_map.insert(key, value);
     }
-    
+
     rules_map
 }
 
@@ -65,9 +65,9 @@ fn generate_row(rules_map: &HashMap<(u8 , u8, u8), u8>, input_row: &[u8], output
 
 #[no_mangle]
 pub extern "C" fn generate_canvas(
-    initial_row: *const u8, 
-    rows: usize, 
-    columns: usize, 
+    initial_row: *const u8,
+    rows: usize,
+    columns: usize,
     rules: *const u8,
     rules_length: usize,
     boost: bool,
@@ -84,9 +84,9 @@ pub extern "C" fn generate_canvas(
 }
 
 fn generate_canvas_by_row(
-    initial_row: *const u8, 
-    rows: usize, 
-    columns: usize, 
+    initial_row: *const u8,
+    rows: usize,
+    columns: usize,
     rules: *const u8,
     rules_length: usize,
     boost: bool,
@@ -148,9 +148,9 @@ fn generate_canvas_by_row(
 }
 
 fn generate_canvas_whole(
-    initial_row: *const u8, 
-    rows: usize, 
-    columns: usize, 
+    initial_row: *const u8,
+    rows: usize,
+    columns: usize,
     rules: *const u8,
     rules_length: usize,
     boost: bool,
@@ -188,7 +188,7 @@ fn generate_canvas_whole(
             let left = if col == 0 { 0 } else { canvas[row * columns + col - 1] };
             let center = canvas[row * columns + col];
             let right = if col == columns - 1 { 0 } else { canvas[row * columns + col + 1] };
-    
+
             if let Some(&new_value) = rules_map.get(&(left as u8, center as u8, right as u8)) {
                 canvas[(row + 1) * columns + col] = new_value as u8;
                 row_sum = row_sum + new_value as u32;
@@ -236,9 +236,9 @@ pub extern "C" fn calculate_stats(canvas_sums: *const u32, sums_length: usize) -
 
     let mean_increase = total_sum_increase / marginal_sum_increase.len() as f32;
 
-    let variance_sum: f32 = marginal_sum_increase.iter().map(|&x| (x - mean_increase).powf(2.0)).sum();
+    let variance_sum: f32 = marginal_sum_increase.iter().map(|&x| (x - mean_increase).powi(2)).sum();
     let standard_deviation = f32::sqrt(variance_sum / marginal_sum_increase.len() as f32);
-    
+
     let sum_rate_length: usize = marginal_sum_increase.len();
 
     let marginal_sum_increase_ptr = marginal_sum_increase.as_mut_ptr();

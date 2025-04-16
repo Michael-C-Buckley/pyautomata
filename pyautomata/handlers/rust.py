@@ -187,18 +187,16 @@ def recognize_canvas(shape: tuple[int, int], canvas_array: ndarray, pattern_leng
     rules_json = loads(string_at(results.pattern_rules_pointer).decode('utf-8'))
     segments_json = loads(string_at(results.pattern_segments_pointer).decode('utf-8'))
 
-    # Convert to Python Dictionaries
-    rules_dict = {}
-    segments_dict = {}
+    # Convert to Python dictionaries
+    rules_dict = {
+        tuple(loads(k)): tuple(loads(v))
+        for k, v in rules_json.items()
+    }
 
-    for k, v in rules_json.items():
-        new_key = tuple(loads(k))
-        new_value = tuple(loads(v))
-        rules_dict[new_key] = new_value
-
-    for k, v in segments_json.items():
-        new_key = tuple(loads(k))
-        segments_dict[new_key] = v
+    segments_dict = {
+        tuple(loads(k)): v
+        for k, v in segments_json.items()
+    }
 
     # Free memory
     free_string(results.pattern_rules_pointer)
