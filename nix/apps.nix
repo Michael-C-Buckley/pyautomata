@@ -1,6 +1,11 @@
 {
-  perSystem = {self', pkgs, ...}: {
+  perSystem = {
+    self',
+    pkgs,
+    ...
+  }: {
     apps = {
+      run = self'.apps.default;
       default = {
         type = "app";
         program = let

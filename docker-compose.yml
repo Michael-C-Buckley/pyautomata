@@ -6,5 +6,5 @@ services:
     ports:
       - "8888:8888"
     volumes:
-      - .:/usr/src/app
-    command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password=''
+      - ./notebooks:/notebooks
+    command: /app/bin/app --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password='' --notebook-dir=/notebooks

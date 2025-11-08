@@ -1,24 +1,31 @@
-# Project PyAutomata Docker
-FROM jupyter/base-notebook
-USER root
+# See Mitchell Hashimoto's blog on using Nix with Dockerfiles
+# https://mitchellh.com/writing/nix-with-dockerfiles
 
-RUN apt-get update && apt-get install -y curl build-essential
+# Nix builder
+FROM nixos/nix:latest AS builder
+
+# Copy our source and setup our working dir.
+COPY . /tmp/build
+WORKDIR /tmp/build
+
+# Build our Nix environment (the app package, not the library)
+RUN nix \
+    --extra-experimental-features "nix-command flakes" \
+    --option filter-syscalls false \
+    build .#pyautomata-app
+
+# Copy the Nix store closure into a directory. The Nix store closure is the
+# entire set of Nix store values that we need for our build.
+RUN mkdir /tmp/nix-store-closure
+RUN cp -R $(nix-store -qR result/) /tmp/nix-store-closure
+
+# Final image is based on scratch. We copy a bunch of Nix dependencies
+# but they're fully self-contained so we don't need Nix anymore.
+FROM scratch
+
 WORKDIR /app
 
-# Install Rust
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-ENV PATH="/home/jovyan/.cargo/bin:${PATH}"
-
-# Build Python requirements
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-# Copy the project and install it
-COPY . /app
-RUN pip install /app
-
-# Build Rust library
-RUN cd pyautomata/rust && cargo build --release
-
-EXPOSE 8888
-ENV NAME PyAutomata
+# Copy /nix/store
+COPY --from=builder /tmp/nix-store-closure /nix/store
+COPY --from=builder /tmp/build/result /app
+CMD ["/app/bin/app"]
