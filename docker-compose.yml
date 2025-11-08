@@ -2,6 +2,7 @@ version: '3'
 
 services:
   web:
+    image: pyautomata:latest
     build: .
     ports:
       - "8888:8888"
