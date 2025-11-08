@@ -1,6 +1,6 @@
 [project]
 name = "pyautomata"
-version = "0.1.0"
+version = "0.1.1"
 description = "Generate Cellular Automata in Python and Rust to visualize in Jupyter"
 authors = [
     {name = "Michael Buckley"}
@@ -9,11 +9,6 @@ license = {text = "MIT"}
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "numpy (>=2.2.6,<3.0.0)",
-    "matplotlib (>=3.10.3,<4.0.0)"
+    "matplotlib>=3.10.7",
+    "numpy>=2.3.4",
 ]
-
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
