@@ -1,15 +1,15 @@
-{
+{self, ...}: {
   perSystem = {pkgs, ...}: {
     packages.pyautomata-rust = let
-      cargoToml = builtins.fromTOML (builtins.readFile ../pyautomata/rust/Cargo.toml);
+      cargoToml = builtins.fromTOML (builtins.readFile "${self}/pyautomata/rust/Cargo.toml");
     in
       pkgs.rustPlatform.buildRustPackage {
         pname = cargoToml.package.name;
         version = cargoToml.package.version;
 
-        src = ../pyautomata/rust;
+        src = "${self}/pyautomata/rust";
 
-        cargoLock.lockFile = ../pyautomata/rust/Cargo.lock;
+        cargoLock.lockFile = "${self}/pyautomata/rust/Cargo.lock";
 
         buildPhase = "cargo build --release --lib";
 

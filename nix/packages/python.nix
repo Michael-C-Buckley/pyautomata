@@ -1,11 +1,12 @@
-{
+{self, ...}: {
   perSystem = {
+    self',
     pkgs,
     config,
     ...
   }: let
-    pyprojectToml = builtins.fromTOML (builtins.readFile ../pyproject.toml);
-    rustLib = config.packages.pyautomata-rust;
+    pyprojectToml = builtins.fromTOML (builtins.readFile "${self}/pyproject.toml");
+    rustLib = self'.packages.pyautomata-rust;
   in {
     packages.pyautomata = pkgs.python313Packages.buildPythonPackage {
       pname = pyprojectToml.project.name;
@@ -14,10 +15,10 @@
       # Use a minimal source with only what's needed
       src = pkgs.runCommand "pyautomata-src" {} ''
         mkdir -p $out/pyautomata
-        cp ${../pyproject.toml} $out/pyproject.toml
-        
+        cp ${self}/pyproject.toml $out/pyproject.toml
+
         # Copy Python package contents excluding rust
-        for item in ${../pyautomata}/*; do
+        for item in ${self}/pyautomata/*; do
           if [ "$(basename "$item")" != "rust" ]; then
             cp -r "$item" $out/pyautomata/
           fi

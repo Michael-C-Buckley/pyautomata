@@ -6,13 +6,11 @@
       systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
 
       imports = [
-        ./nix/rustPkgs.nix
-        ./nix/pythonPkgs.nix
+        ./nix/apps.nix
+        ./nix/devshells.nix
+        ./nix/packages/rust.nix
+        ./nix/packages/python.nix
       ];
-
-      perSystem = {pkgs, ...}: {
-        devShells.default = import ./nix/shell.nix {inherit pkgs;};
-      };
     };
 
   inputs = {
