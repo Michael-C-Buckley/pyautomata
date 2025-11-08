@@ -6,6 +6,7 @@ from ctypes import (
     c_bool, c_size_t, c_uint8, c_uint32, c_float
 )
 from json import loads
+import os
 from os import path
 
 # Third-Party Modules
@@ -14,12 +15,16 @@ from numpy import ctypeslib, ndarray, copyto, zeros, uint8, uint32, float32
 
 # Path construction
 
+# Check for Nix package environment variable first
+library_path = os.environ.get('PYAUTOMATA_RUST_LIB')
+
 # Docker path
-rust_path = '/rust/target/release/libpyautomata_rust.so'
-library_path = f'/app/pyautomata{rust_path}'
+if not library_path or not path.exists(library_path):
+    rust_path = '/rust/target/release/libpyautomata_rust.so'
+    library_path = f'/app/pyautomata{rust_path}'
 
 # Locally install path
-if not path.exists(library_path):
+if not library_path or not path.exists(library_path):
     current_path = path.dirname(path.abspath(__file__))
     files_path = path.abspath(path.join(current_path, '..'))
     library_path = f'{files_path}{rust_path}'

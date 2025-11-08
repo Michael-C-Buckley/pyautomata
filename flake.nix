@@ -5,11 +5,13 @@
     flake-parts.lib.mkFlake {inherit inputs;} {
       systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
 
+      imports = [
+        ./nix/rustPkgs.nix
+        ./nix/pythonPkgs.nix
+      ];
+
       perSystem = {pkgs, ...}: {
         devShells.default = import ./nix/shell.nix {inherit pkgs;};
-        packages = {
-          pyautomata-rust = import ./nix/rustPackages.nix { inherit pkgs; };
-        };
       };
     };
 
