@@ -1,0 +1,29 @@
+name: Build and Cache
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: cachix/install-nix-action@v31
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+
+    - uses: cachix/cachix-action@v16
+      with:
+        name: ${{ vars.CACHIX_NAME }}
+        authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+    - name: Build packages
+      run: |
+        nix build .#pyautomata
+        nix build .#pyautomata-rust
+        nix build .#pyautomata-app
